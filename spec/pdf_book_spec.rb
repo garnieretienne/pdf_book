@@ -94,8 +94,9 @@ describe PDFBook do
     introduction = PDFBook::Section.new(title: 'Introduction')
     introduction.add_text("This is the first paragraph")
     introduction.add_text("This is the second paragraph")
-
     introduction.add_column_text("Left column\nIs important", "Right column")
+
+    chapter_1 = PDFBook::Section.new(background: @gray_divider_path).add_chapter "Chapter 1"
 
     gallery = PDFBook::Section.new(title: 'Gallery')
     gallery.add_image(@slim_image_path)
@@ -109,6 +110,7 @@ describe PDFBook do
 
     book.sections << introduction
     book.sections << blank_page
+    book.sections << chapter_1
     book.sections << blank_page
     book.sections << full_page_image
     book.sections << gallery

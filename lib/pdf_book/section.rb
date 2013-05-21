@@ -10,6 +10,11 @@ class PDFBook::Section
     @contents = []
   end
 
+  def add_chapter(*args)
+    @contents << PDFBook::Content::Chapter.new(*args)
+    return self
+  end
+
   def add_text(*args)
     @contents << PDFBook::Content::Text.new(*args)
     return self

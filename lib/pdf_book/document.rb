@@ -68,6 +68,11 @@ class PDFBook::Document
     section.contents.each do |content|
       case content
 
+      when PDFBook::Content::Chapter
+        @pdf.move_down 40
+        @pdf.text content.data, size: 30, align: :center
+        @pdf.move_down 60
+
       when PDFBook::Content::Text
         @pdf.text content.data, align: :justify
 
