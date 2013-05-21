@@ -1,6 +1,15 @@
 require "fastimage"
 
 module PDFBook::Content
+
+  class Chapter
+
+    attr_accessor :data
+
+    def initialize(title)
+      @data = title
+    end
+  end
   
   class Text
 

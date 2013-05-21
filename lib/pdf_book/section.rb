@@ -2,25 +2,26 @@ require 'pdf_book/content'
 
 class PDFBook::Section
 
-  attr_accessor :title, :contents
+  attr_accessor :title, :background, :contents
 
   def initialize(options={})
     @title ||= options[:title]
+    @background ||= options[:background]
     @contents = []
   end
 
-  def add_text(text)
-    @contents << PDFBook::Content::Text.new(text)
+  def add_text(*args)
+    @contents << PDFBook::Content::Text.new(*args)
     return self
   end
 
-  def add_column_text(*texts)
-    @contents << PDFBook::Content::ColumnText.new(*texts)
+  def add_column_text(*args)
+    @contents << PDFBook::Content::ColumnText.new(*args)
     return self
   end
 
-  def add_image(path)
-    @contents << PDFBook::Content::Image.new(path)
+  def add_image(*args)
+    @contents << PDFBook::Content::Image.new(*args)
     return self
   end
 end
