@@ -24,4 +24,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "debugger"
 
   spec.add_dependency "prawn"
+  spec.add_dependency "fastimage"
 end

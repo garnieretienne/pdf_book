@@ -2,10 +2,10 @@ require 'pdf_book/content'
 
 class PDFBook::Section
 
-  attr_accessor :layout, :contents
+  attr_accessor :title, :contents
 
   def initialize(options={})
-    @layout = options[:layout] || :plain
+    @title ||= options[:title]
     @contents = []
   end
 
@@ -14,16 +14,13 @@ class PDFBook::Section
     return self
   end
 
-  # Return the max line number occuped by the text contents
-  def max_lines
-    row_number = 0
-    contents.each do |content|
-      if content.class == PDFBook::Content::Text
-        row_number = content.text.lines.count
-      else
-        row_number = 1
-      end
-    end
-    return row_number
+  def add_column_text(*texts)
+    @contents << PDFBook::Content::ColumnText.new(*texts)
+    return self
+  end
+
+  def add_image(path)
+    @contents << PDFBook::Content::Image.new(path)
+    return self
   end
 end
