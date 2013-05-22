@@ -13,7 +13,7 @@ module PDFBook::Content
   
   class Text
 
-    attr_accessor :data, :position, :align, :font_size, :font_style
+    attr_accessor :data, :position, :align, :font_size, :font_style, :line_height
 
     #  :bold, :italic, :underline, :strikethrough, :subscript, and :superscript
     # Font::AFM::BUILT_INS: ["Courier", "Helvetica", "Times-Roman", "Symbol", "ZapfDingbats", "Courier-Bold", "Courier-Oblique", "Courier-BoldOblique", "Times-Bold", "Times-Italic", "Times-BoldItalic", "Helvetica-Bold", "Helvetica-Oblique", "Helvetica-BoldOblique"]
@@ -23,6 +23,7 @@ module PDFBook::Content
       @align = options[:align] || :left
       @font_size = options[:font_size] || 12
       @font_style = options[:font_style] || :normal
+      @line_height = options[:line_height] || 12
     end
   end
 

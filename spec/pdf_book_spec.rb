@@ -91,9 +91,11 @@ describe PDFBook do
 
   it 'should create a cover' do
 
+    book_size = [152.4.mm, 228.6.mm]
+
     book = PDFBook::Document.new(
       font: 'Times-Roman',
-      page_size: [152.4.mm, 228.6.mm],
+      page_size: book_size,
       page_margin_left: 19.05.mm,
       page_margin_right: 19.05.mm,
       page_margin_top: 15.mm,
@@ -106,21 +108,23 @@ describe PDFBook do
       page_margin_left: 13.mm,
       page_margin_right: 13.mm,
       page_margin_top: 13.mm,
-      page_margin_bottom: 13.mm
-    )
-
-    another_cover = PDFBook::Section.new(
-      background: @cover_path,
-      background_size: :margin
+      page_margin_bottom: 15.mm
     )
 
     cover.add_image @large_image_path, 
-      position: get_prawn_y(95.mm),
+      position: get_prawn_y(95.mm, book_size[1], 13.mm),
       max_width: 73.mm,
       max_height: 60.mm
+    
+    taglines = ["This is the best", "cookbook in the world"]
+    cover.add_text taglines.join("\n"),
+      position: get_prawn_y(175.mm, book_size[1], 13.mm),
+      font_style: :italic,
+      font_size: 13,
+      align: :center, 
+      line_height: 4.65
 
     book.sections << cover
-    book.sections << another_cover
     book.to_file '/tmp/book.pdf'
   end
 

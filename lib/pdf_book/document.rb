@@ -17,7 +17,7 @@ class PDFBook::Document
       @page_height = @page_size[1]
     end
 
-    # Page margin
+    # Page margins
     @margin_options = {
       top_margin: options[:page_margin_top] || 0.5,
       bottom_margin: options[:page_margin_bottom] || 0.5,
@@ -113,7 +113,7 @@ class PDFBook::Document
 
       when PDFBook::Content::Text
         @pdf.move_cursor_to content.position if content.position
-        @pdf.text content.data, align: content.align, size: content.font_size, style: content.font_style
+        @pdf.text content.data, align: content.align, size: content.font_size, style: content.font_style, leading: content.line_height
 
       when PDFBook::Content::ColumnText
         @pdf.table([content.data], width: @pdf.bounds.width, cell_style: { borders: []})
