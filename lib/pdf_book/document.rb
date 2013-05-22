@@ -7,8 +7,8 @@ class PDFBook::Document
   def initialize(options={})
     @note_page ||= options[:note_page]
 
+    # Page size
     @page_size = options[:page_size] || 'LETTER'
-    
     if @page_size.class == String
       @page_width = Prawn::Document::PageGeometry::SIZES[@page_size][0]
       @page_height = Prawn::Document::PageGeometry::SIZES[@page_size][1]
@@ -17,9 +17,21 @@ class PDFBook::Document
       @page_height = @page_size[1]
     end
 
+    # Page margin
+    @margin_options = {
+      top_margin: options[:page_margin_top] || 0.5,
+      bottom_margin: options[:page_margin_bottom] || 0.5,
+      left_margin: options[:page_margin_left] || 0.5,
+      right_margin: options[:page_margin_right] || 0.5
+    }
+
+    # Fonts
     @font = options[:font] || 'Times-Roman'
+    
+    # Book content
     @sections = []
 
+    # Initialize the PDF
     @pdf = Prawn::Document.new(
       page_size: @page_size,
       skip_page_creation: true
@@ -38,8 +50,8 @@ class PDFBook::Document
 
   private
 
-  def init_new_page
-    @pdf.start_new_page
+  def init_new_page(new_margin_options={})
+    @pdf.start_new_page @margin_options.merge(new_margin_options)
     @pdf.font(@font)
   end
 
@@ -70,12 +82,20 @@ class PDFBook::Document
   end
 
   def render_section(section)
-    init_new_page
+    init_new_page(section.margin_options)
+
     if section.background
-      @pdf.image section.background,
-        at: [-@pdf.bounds.absolute_left, @page_height - @pdf.bounds.absolute_bottom],
-        width: @page_width,
-        height: @page_height
+      case section.background_size
+      when :fullpage
+        @pdf.image section.background,
+          at: [-@pdf.bounds.absolute_left, @page_height - @pdf.bounds.absolute_bottom],
+          width: @page_width,
+          height: @page_height
+      when :margin
+        @pdf.image section.background,
+          width: @pdf.bounds.width,
+          height: @pdf.bounds.height
+      end
     end
     
     if section.title

@@ -93,9 +93,26 @@ describe PDFBook do
 
     book = PDFBook::Document.new(
       font: 'Times-Roman',
-      page_size: [152.4.mm, 228.6.mm]
+      page_size: [152.4.mm, 228.6.mm],
+      page_margin_left: 19.05.mm,
+      page_margin_right: 19.05.mm,
+      page_margin_top: 15.mm,
+      page_margin_bottom: 20.mm
     )
-    cover = PDFBook::Section.new(background: @cover_path)
+
+    cover = PDFBook::Section.new(
+      background: @cover_path,
+      background_size: :margin,
+      page_margin_left: 13.mm,
+      page_margin_right: 13.mm,
+      page_margin_top: 13.mm,
+      page_margin_bottom: 13.mm
+    )
+
+    another_cover = PDFBook::Section.new(
+      background: @cover_path,
+      background_size: :margin
+    )
 
     cover.add_image @large_image_path, 
       position: get_prawn_y(95.mm),
@@ -103,7 +120,7 @@ describe PDFBook do
       max_height: 60.mm
 
     book.sections << cover
-    book.sections << cover
+    book.sections << another_cover
     book.to_file '/tmp/book.pdf'
   end
 
