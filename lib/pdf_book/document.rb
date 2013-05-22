@@ -8,8 +8,11 @@ class PDFBook::Document
     @note_page ||= options[:note_page]
 
     @page_size = options[:page_size] || 'LETTER'
-    @pdf = Prawn::Document.new page_size: @page_size
+    @font = options[:font] || 'Times-Roman'
     @sections = []
+
+    @pdf = Prawn::Document.new page_size: @page_size
+    @pdf.font(@font)
   end
 
   def to_pdf
@@ -74,7 +77,8 @@ class PDFBook::Document
         @pdf.move_down 60
 
       when PDFBook::Content::Text
-        @pdf.text content.data, align: :justify
+        @pdf.move_cursor_to content.position if content.position
+        @pdf.text content.data, align: content.align, size: content.font_size, style: content.font_style
 
       when PDFBook::Content::ColumnText
         @pdf.table([content.data], width: @pdf.bounds.width, cell_style: { borders: []})

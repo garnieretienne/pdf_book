@@ -13,10 +13,16 @@ module PDFBook::Content
   
   class Text
 
-    attr_accessor :data
+    attr_accessor :data, :position, :align, :font_size, :font_style
 
-    def initialize(text)
+    #  :bold, :italic, :underline, :strikethrough, :subscript, and :superscript
+    # Font::AFM::BUILT_INS: ["Courier", "Helvetica", "Times-Roman", "Symbol", "ZapfDingbats", "Courier-Bold", "Courier-Oblique", "Courier-BoldOblique", "Times-Bold", "Times-Italic", "Times-BoldItalic", "Helvetica-Bold", "Helvetica-Oblique", "Helvetica-BoldOblique"]
+    def initialize(text, options={})
       @data = text
+      @position ||= options[:position]
+      @align = options[:align] || :left
+      @font_size = options[:font_size] || 12
+      @font_style = options[:font_style] || :normal
     end
   end
 
