@@ -91,7 +91,10 @@ describe PDFBook do
 
   it 'should create a cover' do
 
-    book = PDFBook::Document.new(font: 'Times-Roman') # Times in the database
+    book = PDFBook::Document.new(
+      font: 'Times-Roman',
+      page_size: [152.4.mm, 228.6.mm]
+    )
     cover = PDFBook::Section.new(background: @cover_path)
 
     cover.add_image @large_image_path, 

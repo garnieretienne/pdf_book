@@ -8,6 +8,15 @@ class PDFBook::Document
     @note_page ||= options[:note_page]
 
     @page_size = options[:page_size] || 'LETTER'
+    
+    if @page_size.class == String
+      @page_width = Prawn::Document::PageGeometry::SIZES[@page_size][0]
+      @page_height = Prawn::Document::PageGeometry::SIZES[@page_size][1]
+    else
+      @page_width = @page_size[0]
+      @page_height = @page_size[1]
+    end
+
     @font = options[:font] || 'Times-Roman'
     @sections = []
 
@@ -58,9 +67,9 @@ class PDFBook::Document
 
     if section.background
       @pdf.image section.background,
-        at: [-@pdf.bounds.absolute_left, Prawn::Document::PageGeometry::SIZES[@page_size][1] - @pdf.bounds.absolute_bottom],
-        width: Prawn::Document::PageGeometry::SIZES[@page_size][0],
-        height: Prawn::Document::PageGeometry::SIZES[@page_size][1]
+        at: [-@pdf.bounds.absolute_left, @page_height - @pdf.bounds.absolute_bottom],
+        width: @page_width,
+        height: @page_height
     end
     
     if section.title
