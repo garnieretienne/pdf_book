@@ -103,6 +103,7 @@ describe PDFBook do
       max_height: 60.mm
 
     book.sections << cover
+    book.sections << cover
     book.to_file '/tmp/book.pdf'
   end
 
@@ -139,3 +140,4 @@ describe PDFBook do
   # end
 
 end
+

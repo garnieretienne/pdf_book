@@ -20,8 +20,10 @@ class PDFBook::Document
     @font = options[:font] || 'Times-Roman'
     @sections = []
 
-    @pdf = Prawn::Document.new page_size: @page_size
-    @pdf.font(@font)
+    @pdf = Prawn::Document.new(
+      page_size: @page_size,
+      skip_page_creation: true
+    )
   end
 
   def to_pdf
@@ -36,6 +38,11 @@ class PDFBook::Document
 
   private
 
+  def init_new_page
+    @pdf.start_new_page
+    @pdf.font(@font)
+  end
+
   def render
     
     if @note_page
@@ -46,7 +53,6 @@ class PDFBook::Document
     sections.each do |section|
       raise TypeError, "#{section.class} is not PDFBook::Section" if section.class != PDFBook::Section
       render_section section
-      @pdf.start_new_page
     end
 
     @pdf
@@ -64,7 +70,7 @@ class PDFBook::Document
   end
 
   def render_section(section)
-
+    init_new_page
     if section.background
       @pdf.image section.background,
         at: [-@pdf.bounds.absolute_left, @page_height - @pdf.bounds.absolute_bottom],
