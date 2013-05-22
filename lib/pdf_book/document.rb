@@ -84,9 +84,11 @@ class PDFBook::Document
         @pdf.table([content.data], width: @pdf.bounds.width, cell_style: { borders: []})
 
       when PDFBook::Content::Image
-        height_available = @pdf.bounds.height-(@pdf.bounds.height-@pdf.cursor)
-        if content.width > @pdf.bounds.width || content.height > height_available
-          @pdf.image(content.data, fit: [@pdf.bounds.width, height_available], position: :center)
+        @pdf.move_cursor_to content.position if content.position
+        max_width = content.max_width || @pdf.bounds.width
+        max_height = content.max_height || @pdf.bounds.height-(@pdf.bounds.height-@pdf.cursor)
+        if content.width > max_width || content.height > max_height
+          @pdf.image(content.data, fit: [max_width, max_height], position: :center)
         else
           @pdf.image(content.data, position: :center)
         end

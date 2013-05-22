@@ -1,9 +1,11 @@
 require 'spec_helper'
+require 'prawn/measurement_extensions'
+
 
 describe PDFBook do
   before do
     @slim_image_path = "#{File.dirname(__FILE__)}/fixtures/files/slim.jpg"
-    @large_image_path = "#{File.dirname(__FILE__)}/fixtures/files/large.jpg"
+    @large_image_path = "#{File.dirname(__FILE__)}/fixtures/files/large2.jpg"
     @highter_image_path = "#{File.dirname(__FILE__)}/fixtures/files/highter.jpg"
     @gray_divider_path = "#{File.dirname(__FILE__)}/fixtures/files/gray_divider.jpg"
 
@@ -88,14 +90,14 @@ describe PDFBook do
   # end
 
   it 'should create a cover' do
+
     book = PDFBook::Document.new(font: 'Times-Roman') # Times in the database
     cover = PDFBook::Section.new(background: @cover_path)
 
-    title = cover.add_text "My CookBook",
-      position: 175,
-      align: :center,
-      font_size: 13,
-      font_style: :italic
+    cover.add_image @large_image_path, 
+      position: get_prawn_y(95.mm),
+      max_width: 73.mm,
+      max_height: 60.mm
 
     book.sections << cover
     book.to_file '/tmp/book.pdf'

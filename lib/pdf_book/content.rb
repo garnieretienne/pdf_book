@@ -40,17 +40,22 @@ module PDFBook::Content
 
   class Image
 
-    attr_accessor :data, :width, :height
+    attr_accessor :data, :width, :height, :max_width, :max_height, :position
 
     # Require a png image (some 'png' block the script)
-    def initialize(path)
+    def initialize(path, options={})
       raise "Image not found at '#{path}'" if !File.exist?(path)
       @type = FastImage.type(path)
       raise "Image must be a JPG (#{@type})" if ![:jpg, :jpeg].include? @type
+      
       @data = path
       @width, @height = FastImage.size(path, raise_on_failure: true, timeout: 2)
       @mode = (@width > @height) ? :landscape : :portrait
       @ratio = @width / @height
+
+      @position ||= options[:position]
+      @max_width ||= options[:max_width]
+      @max_height ||= options[:max_height]
     end
   end
 end
