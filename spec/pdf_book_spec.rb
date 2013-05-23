@@ -227,23 +227,54 @@ describe PDFBook do
   it "should build a note page" do
     book_size = [152.4.mm, 228.6.mm]
 
-    page_margin_bottom = 20.mm
+    margin_bottom = 20.mm
     book = PDFBook::Document.new(
       font: 'Times-Roman',
       page_size: book_size,
       page_margin_left: 19.05.mm,
       page_margin_right: 19.05.mm,
       page_margin_top: 15.mm,
-      page_margin_bottom: 20.mm
+      page_margin_bottom: margin_bottom
     )
 
     note_page = PDFBook::Section.new
 
     note_page.add_text "Notes",
-      position: get_prawn_y(25.mm+15.mm, book_size[1], page_margin_bottom),
+      position: get_prawn_y(25.mm+15.mm, book_size[1], margin_bottom),
       font_size: 17,
       align: :center,
-      font_style: :italic
+      font_style: :italic,
+      line_height: 4.65.mm,
+      gap: 4.65.mm
+
+    note_page.add_custom move_down: 2.5.mm
+
+    7.times do
+      note_page.add_custom({
+        line_width: 0.2.mm,
+        stroke_horizontal_rule: nil,
+        move_down: 15.5.mm,
+      })
+    end
+
+    footer_notes = [
+      'Printed in Canada',
+      Time.now.year.to_s
+    ]
+    note_page.add_text 'This book was created & published with the help of',
+      position: get_prawn_y(175.mm, book_size[1], margin_bottom),
+      font_size: 9,
+      align: :center,
+      gap: 4.65.mm
+    note_page.add_text 'www.HeritageCookbook.com',
+      font_size: 11,
+      align: :center, 
+      gap: 4.65.mm,
+      font_style: :bold
+    note_page.add_text footer_notes.join("\n"),
+      font_size: 9,
+      align: :center,
+      line_height: 4.65.mm
 
     book.sections << note_page
     book.to_file '/tmp/note_page.pdf'

@@ -109,8 +109,8 @@ class PDFBook::Document
 
       when PDFBook::Content::Custom
         content.data.each do |command, args|
-          @pdf.stroke do 
-            @pdf.send command, *args
+          @pdf.stroke do
+            (args) ? @pdf.send(command, *args) : @pdf.send(command)
           end
         end
 
@@ -125,9 +125,9 @@ class PDFBook::Document
           align: content.align, 
           size: content.font_size, 
           style: content.font_style, 
-          leading: content.line_height, 
+          leading: content.line_height,
           color: content.color
-        @pdf.move_down content.font_size+content.line_height
+        @pdf.move_down content.gap if content.gap
 
       when PDFBook::Content::ColumnText
         @pdf.table([content.data], width: @pdf.bounds.width, cell_style: { borders: []})
