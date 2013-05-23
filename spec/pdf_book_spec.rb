@@ -90,108 +90,108 @@ describe PDFBook do
   #   doc.sections.first.background.should == @large_image_path
   # end
 
-  it 'should create a cover' do
+  # it 'should create a cover' do
 
-    book_size = [152.4.mm, 228.6.mm]
+  #   book_size = [152.4.mm, 228.6.mm]
 
-    book = PDFBook::Document.new(
-      font: 'Times-Roman',
-      page_size: book_size,
-      page_margin_left: 19.05.mm,
-      page_margin_right: 19.05.mm,
-      page_margin_top: 15.mm,
-      page_margin_bottom: 20.mm
-    )
+  #   book = PDFBook::Document.new(
+  #     font: 'Times-Roman',
+  #     page_size: book_size,
+  #     page_margin_left: 19.05.mm,
+  #     page_margin_right: 19.05.mm,
+  #     page_margin_top: 15.mm,
+  #     page_margin_bottom: 20.mm
+  #   )
 
-    cover_margin_bottom = 15.mm+2.mm # should add 2 more mm to be the same as old script 
-    cover = PDFBook::Section.new(
-      background: @cover_path,
-      background_size: :margin,
-      page_margin_left: 13.mm,
-      page_margin_right: 13.mm,
-      page_margin_top: 13.mm,
-      page_margin_bottom: cover_margin_bottom
-    )
+  #   cover_margin_bottom = 15.mm+2.mm # should add 2 more mm to be the same as old script 
+  #   cover = PDFBook::Section.new(
+  #     background: @cover_path,
+  #     background_size: :margin,
+  #     page_margin_left: 13.mm,
+  #     page_margin_right: 13.mm,
+  #     page_margin_top: 13.mm,
+  #     page_margin_bottom: cover_margin_bottom
+  #   )
 
-    cover.add_image @large_image_path, 
-      position: get_prawn_y(95.mm, book_size[1], cover_margin_bottom),
-      max_width: 73.mm,
-      max_height: 60.mm
+  #   cover.add_image @large_image_path, 
+  #     position: get_prawn_y(95.mm, book_size[1], cover_margin_bottom),
+  #     max_width: 73.mm,
+  #     max_height: 60.mm
 
-    # Draw picture rectangle
-    # use user image max height and width
-    # x = (page_width - rectangle_width )/ 2-(margin_left + margin_right) /2
-    cover.add_custom(
-      line_width: 0.6.mm,
-      rectangle: [ [(book.page_width-73.mm)/2-(13.mm+13.mm)/2, get_prawn_y(95.mm, book_size[1], cover_margin_bottom)], 73.mm, 60.mm ],
-    )
+  #   # Draw picture rectangle
+  #   # use user image max height and width
+  #   # x = (page_width - rectangle_width )/ 2-(margin_left + margin_right) /2
+  #   cover.add_custom(
+  #     line_width: 0.6.mm,
+  #     rectangle: [ [(book.page_width-73.mm)/2-(13.mm+13.mm)/2, get_prawn_y(95.mm, book_size[1], cover_margin_bottom)], 73.mm, 60.mm ],
+  #   )
     
-    taglines = ["This is the best", "cookbook in the world"]
-    cover.add_text taglines.join("\n"),
-      position: get_prawn_y(175.mm, book_size[1], cover_margin_bottom),
-      font_style: :italic,
-      font_size: 13,
-      align: :center, 
-      line_height: 4.65,
-      color: get_prawn_color("151,53,15")
+  #   taglines = ["This is the best", "cookbook in the world"]
+  #   cover.add_text taglines.join("\n"),
+  #     position: get_prawn_y(175.mm, book_size[1], cover_margin_bottom),
+  #     font_style: :italic,
+  #     font_size: 13,
+  #     align: :center, 
+  #     line_height: 4.65,
+  #     color: get_prawn_color("151,53,15")
 
 
-    book.sections << cover
-    book.to_file '/tmp/cover.pdf'
-  end
+  #   book.sections << cover
+  #   book.to_file '/tmp/cover.pdf'
+  # end
 
-  it "should build a blank page" do
+  # it "should build a blank page" do
 
-    book = PDFBook::Document.new(
-      font: 'Times-Roman',
-      page_size: [152.4.mm, 228.6.mm],
-      page_margin_left: 19.05.mm,
-      page_margin_right: 19.05.mm,
-      page_margin_top: 15.mm,
-      page_margin_bottom: 20.mm
-    )
+  #   book = PDFBook::Document.new(
+  #     font: 'Times-Roman',
+  #     page_size: [152.4.mm, 228.6.mm],
+  #     page_margin_left: 19.05.mm,
+  #     page_margin_right: 19.05.mm,
+  #     page_margin_top: 15.mm,
+  #     page_margin_bottom: 20.mm
+  #   )
 
-    blank_page = PDFBook::Section.new
+  #   blank_page = PDFBook::Section.new
 
-    book.sections << blank_page
-    book.to_file '/tmp/blank.pdf'
-  end
+  #   book.sections << blank_page
+  #   book.to_file '/tmp/blank.pdf'
+  # end
 
-  it "should build an inner cover" do
+  # it "should build an inner cover" do
 
-    book_size = [152.4.mm, 228.6.mm]
+  #   book_size = [152.4.mm, 228.6.mm]
 
-    book = PDFBook::Document.new(
-      font: 'Times-Roman',
-      page_size: book_size,
-      page_margin_left: 19.05.mm,
-      page_margin_right: 19.05.mm,
-      page_margin_top: 15.mm,
-      page_margin_bottom: 20.mm
-    )
+  #   book = PDFBook::Document.new(
+  #     font: 'Times-Roman',
+  #     page_size: book_size,
+  #     page_margin_left: 19.05.mm,
+  #     page_margin_right: 19.05.mm,
+  #     page_margin_top: 15.mm,
+  #     page_margin_bottom: 20.mm
+  #   )
 
-    cover_margin_bottom = 15.mm+2.mm # should add 2 more mm to be the same as old script 
-    inner_cover = PDFBook::Section.new(
-      background: @inner_cover_path,
-      background_size: :margin,
-      page_margin_left: 13.mm,
-      page_margin_right: 13.mm,
-      page_margin_top: 13.mm,
-      page_margin_bottom: cover_margin_bottom
-    )
+  #   cover_margin_bottom = 15.mm+2.mm # should add 2 more mm to be the same as old script 
+  #   inner_cover = PDFBook::Section.new(
+  #     background: @inner_cover_path,
+  #     background_size: :margin,
+  #     page_margin_left: 13.mm,
+  #     page_margin_right: 13.mm,
+  #     page_margin_top: 13.mm,
+  #     page_margin_bottom: cover_margin_bottom
+  #   )
 
-    taglines = ["This is the best", "cookbook in the world"]
-    inner_cover.add_text taglines.join("\n"),
-      position: get_prawn_y(175.mm, book_size[1], cover_margin_bottom),
-      font_style: :italic,
-      font_size: 13,
-      align: :center, 
-      line_height: 4.65+1, # +1 too
-      color: get_prawn_color("151,53,15")
+  #   taglines = ["This is the best", "cookbook in the world"]
+  #   inner_cover.add_text taglines.join("\n"),
+  #     position: get_prawn_y(175.mm, book_size[1], cover_margin_bottom),
+  #     font_style: :italic,
+  #     font_size: 13,
+  #     align: :center, 
+  #     line_height: 4.65+1, # +1 too
+  #     color: get_prawn_color("151,53,15")
 
-    book.sections << inner_cover
-    book.to_file '/tmp/inner_cover.pdf'
-  end
+  #   book.sections << inner_cover
+  #   book.to_file '/tmp/inner_cover.pdf'
+  # end
 
   it "should add an introduction" do
     book_size = [152.4.mm, 228.6.mm]
@@ -222,6 +222,31 @@ describe PDFBook do
 
     book.sections << introduction
     book.to_file '/tmp/introduction.pdf'
+  end
+
+  it "should build a note page" do
+    book_size = [152.4.mm, 228.6.mm]
+
+    page_margin_bottom = 20.mm
+    book = PDFBook::Document.new(
+      font: 'Times-Roman',
+      page_size: book_size,
+      page_margin_left: 19.05.mm,
+      page_margin_right: 19.05.mm,
+      page_margin_top: 15.mm,
+      page_margin_bottom: 20.mm
+    )
+
+    note_page = PDFBook::Section.new
+
+    note_page.add_text "Notes",
+      position: get_prawn_y(25.mm+15.mm, book_size[1], page_margin_bottom),
+      font_size: 17,
+      align: :center,
+      font_style: :italic
+
+    book.sections << note_page
+    book.to_file '/tmp/note_page.pdf'
   end
 
 
