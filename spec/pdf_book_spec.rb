@@ -102,30 +102,41 @@ describe PDFBook do
       page_margin_bottom: 20.mm
     )
 
+    cover_margin_bottom = 15.mm+2.mm # should add 2 more mm to be the same as old script 
     cover = PDFBook::Section.new(
       background: @cover_path,
       background_size: :margin,
       page_margin_left: 13.mm,
       page_margin_right: 13.mm,
       page_margin_top: 13.mm,
-      page_margin_bottom: 15.mm
+      page_margin_bottom: cover_margin_bottom
+    )
+
+    # Draw picture rectangle
+    # use user image max height and width
+    # x = (page_width - rectangle_width )/ 2-(margin_left + margin_right) /2
+    cover.add_custom(
+      line_width: 0.6.mm,
+      rectangle: [ [(book.page_width-73.mm)/2-(13.mm+13.mm)/2, get_prawn_y(95.mm, book_size[1], cover_margin_bottom)], 73.mm, 60.mm ],
     )
 
     cover.add_image @large_image_path, 
-      position: get_prawn_y(95.mm, book_size[1], 13.mm),
+      position: get_prawn_y(95.mm, book_size[1], cover_margin_bottom),
       max_width: 73.mm,
       max_height: 60.mm
     
     taglines = ["This is the best", "cookbook in the world"]
     cover.add_text taglines.join("\n"),
-      position: get_prawn_y(175.mm, book_size[1], 13.mm),
+      position: get_prawn_y(175.mm, book_size[1], cover_margin_bottom),
       font_style: :italic,
       font_size: 13,
       align: :center, 
-      line_height: 4.65
+      line_height: 5.65, # +1 too
+      color: get_prawn_color("151,53,15")
+
 
     book.sections << cover
-    book.to_file '/tmp/book.pdf'
+    book.to_file '/tmp/cover.pdf'
   end
 
 

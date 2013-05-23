@@ -23,6 +23,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rspec"
   spec.add_development_dependency "debugger"
 
-  spec.add_dependency "prawn"
+  spec.add_dependency "prawn", '~> 1.0.0.rc1'
   spec.add_dependency "fastimage"
 end

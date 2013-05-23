@@ -18,6 +18,11 @@ class PDFBook::Section
     @margin_options[:right_margin] = options[:page_margin_right] if options[:page_margin_right]
   end
 
+  def add_custom(*args)
+    @contents << PDFBook::Content::Custom.new(*args)
+    return self
+  end
+
   def add_chapter(*args)
     @contents << PDFBook::Content::Chapter.new(*args)
     return self

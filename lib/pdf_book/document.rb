@@ -2,7 +2,8 @@ require 'prawn'
 
 class PDFBook::Document
 
-  attr_accessor :sections
+  attr_accessor :sections 
+  attr_reader :page_width, :page_height
 
   def initialize(options={})
     @note_page ||= options[:note_page]
@@ -10,11 +11,11 @@ class PDFBook::Document
     # Page size
     @page_size = options[:page_size] || 'LETTER'
     if @page_size.class == String
-      @page_width = Prawn::Document::PageGeometry::SIZES[@page_size][0]
-      @page_height = Prawn::Document::PageGeometry::SIZES[@page_size][1]
+      @page_width = Prawn::Document::PageGeometry::SIZES[@page_size][0].to_f
+      @page_height = Prawn::Document::PageGeometry::SIZES[@page_size][1].to_f
     else
-      @page_width = @page_size[0]
-      @page_height = @page_size[1]
+      @page_width = @page_size[0].to_f
+      @page_height = @page_size[1].to_f
     end
 
     # Page margins
@@ -106,6 +107,13 @@ class PDFBook::Document
     section.contents.each do |content|
       case content
 
+      when PDFBook::Content::Custom
+        content.data.each do |command, args|
+          @pdf.stroke do 
+            @pdf.send command, *args
+          end
+        end
+
       when PDFBook::Content::Chapter
         @pdf.move_down 40
         @pdf.text content.data, size: 30, align: :center
@@ -113,7 +121,12 @@ class PDFBook::Document
 
       when PDFBook::Content::Text
         @pdf.move_cursor_to content.position if content.position
-        @pdf.text content.data, align: content.align, size: content.font_size, style: content.font_style, leading: content.line_height
+        @pdf.text content.data, 
+          align: content.align, 
+          size: content.font_size, 
+          style: content.font_style, 
+          leading: content.line_height, 
+          color: content.color
 
       when PDFBook::Content::ColumnText
         @pdf.table([content.data], width: @pdf.bounds.width, cell_style: { borders: []})
