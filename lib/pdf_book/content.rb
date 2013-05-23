@@ -25,13 +25,14 @@ module PDFBook::Content
 
     #  :bold, :italic, :underline, :strikethrough, :subscript, and :superscript
     # Font::AFM::BUILT_INS: ["Courier", "Helvetica", "Times-Roman", "Symbol", "ZapfDingbats", "Courier-Bold", "Courier-Oblique", "Courier-BoldOblique", "Times-Bold", "Times-Italic", "Times-BoldItalic", "Helvetica-Bold", "Helvetica-Oblique", "Helvetica-BoldOblique"]
+    # Line height is space added to the font_size
     def initialize(text, options={})
       @data = text
       @position ||= options[:position]
       @align = options[:align] || :left
       @font_size = options[:font_size] || 12
       @font_style = options[:font_style] || :normal
-      @line_height = options[:line_height] || 12
+      @line_height = options[:line_height] || 0
       @color = options[:color] || "000000"
     end
   end

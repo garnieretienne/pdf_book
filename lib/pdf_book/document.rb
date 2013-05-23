@@ -127,6 +127,7 @@ class PDFBook::Document
           style: content.font_style, 
           leading: content.line_height, 
           color: content.color
+        @pdf.move_down content.font_size+content.line_height
 
       when PDFBook::Content::ColumnText
         @pdf.table([content.data], width: @pdf.bounds.width, cell_style: { borders: []})
@@ -144,7 +145,6 @@ class PDFBook::Document
       else
         raise TypeError, "This content (#{content.class}) is not allowed"
       end
-      @pdf.move_down 20
     end
   end
 end
