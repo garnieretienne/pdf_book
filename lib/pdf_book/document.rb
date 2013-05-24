@@ -32,6 +32,7 @@ class PDFBook::Document
     # Book content
     @sections = []
     @toc = {}
+    @index = {}
     @page_number = []
 
     # Watermark
@@ -49,6 +50,13 @@ class PDFBook::Document
     @toc_position = options[:position] || @pdf.bounds.top
     @toc_width    = options[:width]    || @pdf.bounds.width
     @toc_start_at = options[:start_at] || 1
+  end
+
+  def index(options={})
+    @index_template = options[:template] || PDFBook::Section.new
+    @index_position = options[:position] || @pdf.bounds.top
+    @index_width    = options[:width]    || @pdf.bounds.width
+    @index_start_at = options[:start_at] || 1
   end
 
   def pages
@@ -101,11 +109,69 @@ class PDFBook::Document
     @pdf.stamp "watermark" if @watermark
   end
 
+  def render_index
+    index if !@index_template
+  
+    ordered = {}
+    @index.each{ |label, page| ordered["#{label}"] = {page: page, type: :subtopic} }
+    @toc.each{ |label, page| ordered["#{label}"] = {page: page, type: :topic} }
+    
+    @index_template.add_custom move_cursor_to: @index_position
+
+    topic_size=9
+    subtopic_size = 9
+    ordered.sort_by{|label, attributes| attributes[:page]}.each do |label, parameters|
+
+      # The 'Index' page is insered at the end
+      parameters[:page] = (@index_page < parameters[:page]) ? parameters[:page] + 1 : parameters[:page]
+
+      # The 'Table of Content' page is insered at the end
+      parameters[:page] = (@toc_page < parameters[:page]) ? parameters[:page] + 1 : parameters[:page]
+
+      # 'Start at' parameter
+      parameters[:page] = parameters[:page] - @index_start_at + 1
+
+      if parameters[:type] == :topic
+        line_width = @pdf.bounds.width - (@pdf.width_of(label.to_s, size: topic_size) + @pdf.width_of(parameters[:page].to_s, size: topic_size))-2
+        space_number = line_width / @pdf.width_of(" ", size: topic_size)
+        @index_template.add_custom(
+          text: [ 
+            "#{label}"+" "*space_number+"#{parameters[:page]}", 
+            size: topic_size,
+            style: :bold
+          ],
+          move_up: 4,
+          horizontal_line: [@pdf.width_of("#{label.to_s}", size: topic_size)+topic_size, line_width+topic_size],
+          move_down: 10
+        )
+      else
+        @index_template.add_custom text: [ 
+          "#{label},  #{parameters[:page]}", 
+          size: subtopic_size
+        ]
+      end
+    end
+    @pdf.go_to_page @index_page
+    render_section @index_template
+  end
+
   def render_table_of_content
+    table_of_content if !@toc_template
     cells = []
-    @toc.each do |label, page|
-      page = (@toc_page < page) ? page + 1 : page # the 'Table of Content' page is insered at the end
+    @toc.sort_by{|label, page| page}.each do |label, page|
+
+      # page = (@toc_page < page) ? page + 1 : page # the 'Table of Content' page is insered at the end
+      # page = page - @toc_start_at + 1
+
+      # The 'Index' page is insered at the end
+      page = (@index_page < page) ? page + 1 : page
+
+      # The 'Table of Content' page is insered at the end
+      page = (@toc_page < page) ? page + 1 : page
+
+      # 'Start at' parameter
       page = page - @toc_start_at + 1
+
       label_cell = @pdf.make_cell(content: label.to_s)
       page_cell = @pdf.make_cell(content: page.to_s)
       page_cell.align = :right
@@ -137,14 +203,18 @@ class PDFBook::Document
       case section
       when :table_of_content
         @toc_page = @pdf.page_count
+      when :index
+        @index_page = @pdf.page_count
       else
         raise TypeError, "#{section.class} is not PDFBook::Section" if section.class != PDFBook::Section
         render_section section
       end
     end
 
-    render_table_of_content
+    render_index if @index_page
+    render_table_of_content if @toc_page
 
+    #@index?
     @pdf.number_pages "<page>",
       at: [0, -20],
       align: :center,
@@ -168,8 +238,12 @@ class PDFBook::Document
   def render_section(section)
     init_new_page(section.margin_options)
 
+    if section.toc
+      @toc[section.toc] = @pdf.page_count
+    end
+
     if section.index
-      @toc[section.index] = @pdf.page_count
+      @index[section.index] = @pdf.page_count
     end
 
     if section.background
@@ -243,6 +317,9 @@ class PDFBook::Document
       page_number = @pdf.page_number
       if @toc_page
         page_number += 1 if @pdf.page_number > @toc_page 
+      end
+      if @index_page
+        page_number += 1 if @pdf.page_number > @index_page 
       end
       @page_number << page_number
     end

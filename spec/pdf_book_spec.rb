@@ -459,7 +459,7 @@ describe PDFBook do
       page_margin_right: 13.mm,
       page_margin_top: 13.mm,
       page_margin_bottom: cover_margin_bottom,
-      index: "Pasta"
+      toc: "Pasta"
     )
 
     pasta_section.add_text "Pasta",
@@ -489,7 +489,10 @@ describe PDFBook do
     chocolate_taste_recipe_story.add_text "This is my favorite !\n I known you will like it !",
       font_size: 11
 
-    chocolate_taste_recipe = PDFBook::Section.new page_number: true
+    chocolate_taste_recipe = PDFBook::Section.new(
+      page_number: true,
+      index: "Chocolate Taste"
+    )
 
     chocolate_taste_recipe.add_text "Chocolate taste",
       font_size: 17,
@@ -523,6 +526,12 @@ describe PDFBook do
     chocolate_taste_recipe.add_text "1/ Put evrything in a cup\n 2/ Burn it!\n 3/ It's ready !",
       font_size: 11
 
+    ### Create the index
+    ### ----------------
+
+    book.index(
+      start_at: 3
+    )
 
     ### Create the book
     ### ----------------
@@ -538,6 +547,7 @@ describe PDFBook do
     book << pasta_section
     book << chocolate_taste_recipe_story
     book << chocolate_taste_recipe
+    book << :index
     book.to_file '/tmp/book.pdf'
   end
 

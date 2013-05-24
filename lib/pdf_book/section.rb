@@ -2,13 +2,14 @@ require 'pdf_book/content'
 
 class PDFBook::Section
 
-  attr_accessor :title, :background, :background_size, :contents, :margin_options, :index, :page_number
+  attr_accessor :title, :background, :background_size, :contents, :margin_options, :index, :page_number, :toc
 
   def initialize(options={})
     @title ||= options[:title]
     @background ||= options[:background]
     @background_size = options[:background_size] || :fullpage
     @contents = []
+    @toc = (options[:toc])
     @index = (options[:index])
     @page_number = options[:page_number] || false
 
