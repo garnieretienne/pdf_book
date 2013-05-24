@@ -529,8 +529,19 @@ describe PDFBook do
     ### Create the index
     ### ----------------
 
+    index_template = PDFBook::Section.new
+
+    index_template.add_text "Index",
+      font_style: :italic,
+      font_size: 20,
+      line_height: 4.65.mm,
+      gap: 4.65.mm
+
+
     book.index(
-      start_at: 3
+      template: index_template,
+      start_at: 3,
+      position: get_prawn_y(60+4.65.mm*2, book_size[1], margin_bottom)
     )
 
     ### Create the book
