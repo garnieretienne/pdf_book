@@ -34,11 +34,10 @@ class PDFBook::Document
     @toc = {}
     @page_number = []
 
-    # Initialize the PDF
-    @pdf = Prawn::Document.new(
-      page_size: @page_size,
-      skip_page_creation: true
-    )
+    # Watermark
+    @watermark ||= options[:watermark]
+
+    build_document
   end
 
   def <<(section)
@@ -54,14 +53,8 @@ class PDFBook::Document
 
   def pages
     old_pdf = @pdf
-    @pdf = Prawn::Document.new(
-      page_size: @page_size,
-      skip_page_creation: true
-    )
-
-    render
+    build_document && render
     page_count = @pdf.page_count
-    
     @pdf = old_pdf
     return page_count
   end
@@ -78,9 +71,34 @@ class PDFBook::Document
 
   private
 
+  # Initialize the PDF
+  def build_document
+    @pdf = Prawn::Document.new(
+      page_size: @page_size,
+      skip_page_creation: true
+    )
+
+    # Watermark
+    if @watermark
+      @pdf.create_stamp("watermark") do
+        @pdf.fill_color "D2D2D2"
+        @pdf.text_box @watermark,
+          :size   => 2.cm,
+          :width  => @pdf.bounds.width,
+          :height => @pdf.bounds.height,
+          :align  => :center,
+          :valign => :center,
+          :at     => [0, @pdf.bounds.height],
+          :rotate => 45,
+          :rotate_around => :center
+      end
+    end
+  end
+
   def init_new_page(new_margin_options={})
     @pdf.start_new_page @margin_options.merge(new_margin_options)
     @pdf.font(@font)
+    @pdf.stamp "watermark" if @watermark
   end
 
   def render_table_of_content

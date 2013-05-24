@@ -293,7 +293,8 @@ describe PDFBook do
       page_margin_left: 19.05.mm,
       page_margin_right: 19.05.mm,
       page_margin_top: 15.mm,
-      page_margin_bottom: margin_bottom
+      page_margin_bottom: margin_bottom,
+      watermark: "P R E V I E W"
     )
 
     ### Build the cover
