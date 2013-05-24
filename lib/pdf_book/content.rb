@@ -40,10 +40,13 @@ module PDFBook::Content
 
   class ColumnText
 
-    attr_accessor :data
+    attr_accessor :data, :font_size, :line_height, :gap
 
-    def initialize(*texts)
+    def initialize(options={}, *texts)
       @data = []
+      @font_size = options[:font_size] || 12
+      @line_height = options[:line_height] || 0
+      @gap ||= options[:gap]
       texts.each do |text|
         @data << text
       end
@@ -52,7 +55,7 @@ module PDFBook::Content
 
   class Image
 
-    attr_accessor :data, :width, :height, :max_width, :max_height, :position
+    attr_accessor :data, :width, :height, :max_width, :max_height, :position, :gap
 
     # Require a png image (some 'png' block the script)
     def initialize(path, options={})
@@ -68,6 +71,7 @@ module PDFBook::Content
       @position ||= options[:position]
       @max_width ||= options[:max_width]
       @max_height ||= options[:max_height]
+      @gap ||= options[:gap]
     end
   end
 end

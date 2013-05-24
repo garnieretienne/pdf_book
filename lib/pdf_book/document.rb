@@ -3,7 +3,7 @@ require 'prawn'
 class PDFBook::Document
 
   attr_accessor :sections 
-  attr_reader :page_width, :page_height
+  attr_reader :page_width, :page_height, :margin_options
 
   def initialize(options={})
     @note_page ||= options[:note_page]
@@ -196,7 +196,8 @@ class PDFBook::Document
         @pdf.move_down content.gap if content.gap
 
       when PDFBook::Content::ColumnText
-        @pdf.table([content.data], width: @pdf.bounds.width, cell_style: { borders: []})
+        @pdf.table([content.data], width: @pdf.bounds.width, cell_style: { borders: [], size: content.font_size, leading: content.line_height})
+        @pdf.move_down content.gap if content.gap
 
       when PDFBook::Content::Image
         @pdf.move_cursor_to content.position if content.position
@@ -207,6 +208,7 @@ class PDFBook::Document
         else
           @pdf.image(content.data, position: :center)
         end
+        @pdf.move_down content.gap if content.gap
 
       else
         raise TypeError, "This content (#{content.class}) is not allowed"

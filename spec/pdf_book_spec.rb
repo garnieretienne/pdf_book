@@ -5,7 +5,7 @@ require 'prawn/measurement_extensions'
 describe PDFBook do
   before do
     @slim_image_path = "#{File.dirname(__FILE__)}/fixtures/files/slim.jpg"
-    @large_image_path = "#{File.dirname(__FILE__)}/fixtures/files/large2.jpg"
+    @large_image_path = "#{File.dirname(__FILE__)}/fixtures/files/large.jpg"
     @highter_image_path = "#{File.dirname(__FILE__)}/fixtures/files/highter.jpg"
     @gray_divider_path = "#{File.dirname(__FILE__)}/fixtures/files/gray_divider.jpg"
 
@@ -345,8 +345,7 @@ describe PDFBook do
       page_margin_left: 13.mm,
       page_margin_right: 13.mm,
       page_margin_top: 13.mm,
-      page_margin_bottom: cover_margin_bottom,
-      page_number: true
+      page_margin_bottom: cover_margin_bottom
     )
 
     taglines = ["This is the best", "cookbook in the world"]
@@ -435,8 +434,7 @@ describe PDFBook do
       page_margin_left: 13.mm,
       page_margin_right: 13.mm,
       page_margin_top: 13.mm,
-      page_margin_bottom: cover_margin_bottom,
-      page_number: true
+      page_margin_bottom: cover_margin_bottom
     )
 
     toc_template.add_text "Table of Contents",
@@ -462,7 +460,6 @@ describe PDFBook do
       page_margin_right: 13.mm,
       page_margin_top: 13.mm,
       page_margin_bottom: cover_margin_bottom,
-      page_number: true,
       index: "Pasta"
     )
 
@@ -483,9 +480,54 @@ describe PDFBook do
     ### Build Chocolate taste recipe
     ### ----------------------------
 
-    # chocolate_taste_recipe = PDFBook::Section.new(
-    #   page_number: true
-    # )
+    chocolate_taste_recipe_story = PDFBook::Section.new(
+      page_number: true
+    )
+
+    chocolate_taste_recipe_story.add_image @large_image_path,
+      max_width: book.page_width - ( book.margin_options[:left_margin] + book.margin_options[:right_margin] ) + 6.35.mm*2,
+      max_height: (book.page_height - ( book.margin_options[:top_margin] + book.margin_options[:bottom_margin] ) - 4.65.mm) / 2 + 10.mm,
+      gap: 4.65.mm*2
+
+    chocolate_taste_recipe_story.add_text "This is my favorite !\n I known you will like it !",
+      font_size: 11
+
+    chocolate_taste_recipe = PDFBook::Section.new(
+      page_number: true
+    )
+
+    chocolate_taste_recipe.add_text "Chocolate taste",
+      font_size: 17,
+      font_style: :bold,
+      line_height: 4.65.mm/2
+
+    chocolate_taste_recipe.add_text "Contributed By: kurt!",
+      font_size: 11,
+      line_height: 4.65.mm
+
+    left_column_ingredients = [
+      "Pasta",
+      "Chocolate"
+    ]
+
+    right_column_ingredients = [
+      "Salt",
+      "Peeper",
+      "Sugar"
+    ]
+
+    column_options = {
+      font_size: 11,
+      line_height: 2,
+      gap: 4.65.mm
+    }
+    chocolate_taste_recipe.add_column_text column_options, 
+      left_column_ingredients.join("\n"), 
+      right_column_ingredients.join("\n")
+
+    chocolate_taste_recipe.add_text "1/ Put evrything in a cup\n 2/ Burn it!\n 3/ It's ready !",
+      font_size: 11
+
 
     ### Create the book
     ### ----------------
@@ -500,6 +542,8 @@ describe PDFBook do
     book << blank_page
     book << blank_page if book.pages % 2 == 1 # Sections page must always be right
     book << pasta_section
+    book << chocolate_taste_recipe_story
+    book << chocolate_taste_recipe
     book.to_file '/tmp/book.pdf'
   end
 
