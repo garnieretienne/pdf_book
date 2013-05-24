@@ -49,6 +49,7 @@ class PDFBook::Document
     @toc_template = options[:template] || PDFBook::Section.new
     @toc_position = options[:position] || @pdf.bounds.top
     @toc_width    = options[:width]    || @pdf.bounds.width
+    @toc_start_at = options[:start_at] || 1
   end
 
   def pages
@@ -85,7 +86,8 @@ class PDFBook::Document
   def render_table_of_content
     cells = []
     @toc.each do |label, page|
-      page = (@page_number.empty?) ? page : page - @page_number.first + 1
+      page = (@toc_page < page) ? page + 1 : page # the 'Table of Content' page is insered at the end
+      page = page - @toc_start_at + 1
       label_cell = @pdf.make_cell(content: label.to_s)
       page_cell = @pdf.make_cell(content: page.to_s)
       page_cell.align = :right
@@ -100,6 +102,7 @@ class PDFBook::Document
         position: :center
       ]
     )
+    @pdf.go_to_page @toc_page
     render_section @toc_template
   end
 
@@ -113,17 +116,20 @@ class PDFBook::Document
     sections.each do |section|
       case section
       when :table_of_content
-        render_table_of_content # TODO: programmer render_table_of_content(at_page) a la fin du render general
+        @toc_page = @pdf.page_count
       else
         raise TypeError, "#{section.class} is not PDFBook::Section" if section.class != PDFBook::Section
         render_section section
       end
     end
 
+    render_table_of_content
+
     @pdf.number_pages "<page>",
       at: [0, -20],
       align: :center,
-      page_filter: @page_number
+      page_filter: @page_number,
+      start_count_at: (!@page_number.empty? && @toc_start_at) ? @page_number.first-@toc_start_at+1 : 1
 
     @pdf
   end
@@ -143,11 +149,7 @@ class PDFBook::Document
     init_new_page(section.margin_options)
 
     if section.index
-      @toc[section.index] = @pdf.page_number
-    end
-
-    if section.page_number
-      @page_number << @pdf.page_number
+      @toc[section.index] = @pdf.page_count
     end
 
     if section.background
@@ -196,7 +198,9 @@ class PDFBook::Document
         @pdf.move_down content.gap if content.gap
 
       when PDFBook::Content::ColumnText
-        @pdf.table([content.data], width: @pdf.bounds.width, cell_style: { borders: [], size: content.font_size, leading: content.line_height})
+        @pdf.table [content.data], 
+          width: @pdf.bounds.width, 
+          cell_style: { borders: [], size: content.font_size, leading: content.line_height}
         @pdf.move_down content.gap if content.gap
 
       when PDFBook::Content::Image
@@ -213,6 +217,10 @@ class PDFBook::Document
       else
         raise TypeError, "This content (#{content.class}) is not allowed"
       end
+    end
+
+    if section.page_number
+      @page_number << @pdf.page_count
     end
   end
 end
