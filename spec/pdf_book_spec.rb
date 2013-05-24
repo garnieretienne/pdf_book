@@ -360,10 +360,7 @@ describe PDFBook do
     ### Build the introduction
     ### ----------------------
 
-    introduction = PDFBook::Section.new(
-      index: "Introduction",
-      page_number: true
-    )
+    introduction = PDFBook::Section.new page_number: true
 
     introduction.add_text "Introduction",
       position: get_prawn_y(18.mm+15.mm, book_size[1], margin_bottom), # +15.mm: in FPDF, margin only used to set the cursor origin, but coordinate are only relative to the top left corner
@@ -536,7 +533,6 @@ describe PDFBook do
     book << introduction
     book << note_page
     book << :table_of_content
-    book << blank_page
     book << blank_page if book.pages % 2 == 1 # Sections page must always be right
     book << pasta_section
     book << chocolate_taste_recipe_story

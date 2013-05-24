@@ -93,15 +93,17 @@ class PDFBook::Document
       page_cell.align = :right
       cells << [label_cell, page_cell]
     end
-    @toc_template.add_custom(
-      move_cursor_to: @toc_position,
-      table: [
-        cells,
-        width: @toc_width,
-        cell_style: { borders: []},
-        position: :center
-      ]
-    )
+    if !cells.empty?
+      @toc_template.add_custom(
+        move_cursor_to: @toc_position,
+        table: [
+          cells,
+          width: @toc_width,
+          cell_style: { borders: []},
+          position: :center
+        ]
+      )
+    end
     @pdf.go_to_page @toc_page
     render_section @toc_template
   end
