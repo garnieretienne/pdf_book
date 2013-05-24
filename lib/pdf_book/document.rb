@@ -31,12 +31,20 @@ class PDFBook::Document
     
     # Book content
     @sections = []
+    @toc = {}
+    @page_number = []
 
     # Initialize the PDF
     @pdf = Prawn::Document.new(
       page_size: @page_size,
       skip_page_creation: true
     )
+  end
+
+  def table_of_content(options={})
+    @toc_template = options[:template] || PDFBook::Section.new
+    @toc_position = options[:position] || @pdf.bounds.top
+    @toc_width    = options[:width]    || @pdf.bounds.width
   end
 
   def to_pdf
@@ -56,6 +64,26 @@ class PDFBook::Document
     @pdf.font(@font)
   end
 
+  def render_table_of_content
+    cells = []
+    @toc.each do |label, page|
+      label_cell = @pdf.make_cell(content: label.to_s)
+      page_cell = @pdf.make_cell(content: page.to_s)
+      page_cell.align = :right
+      cells << [label_cell, page_cell]
+    end
+    @toc_template.add_custom(
+      move_cursor_to: @toc_position,
+      table: [
+        cells,
+        width: @toc_width,
+        cell_style: { borders: []},
+        position: :center
+      ]
+    )
+    render_section @toc_template
+  end
+
   def render
     
     if @note_page
@@ -64,9 +92,19 @@ class PDFBook::Document
     end
 
     sections.each do |section|
-      raise TypeError, "#{section.class} is not PDFBook::Section" if section.class != PDFBook::Section
-      render_section section
+      case section
+      when :table_of_content
+        render_table_of_content
+      else
+        raise TypeError, "#{section.class} is not PDFBook::Section" if section.class != PDFBook::Section
+        render_section section
+      end
     end
+
+    @pdf.number_pages "<page>",
+      at: [0, -20],
+      align: :center,
+      page_filter: @page_number
 
     @pdf
   end
@@ -85,6 +123,14 @@ class PDFBook::Document
   def render_section(section)
     init_new_page(section.margin_options)
 
+    if section.index
+      @toc[section.index] = @pdf.page_number
+    end
+
+    if section.page_number
+      @page_number << @pdf.page_number
+    end
+
     if section.background
       case section.background_size
       when :fullpage
@@ -96,6 +142,7 @@ class PDFBook::Document
         @pdf.image section.background,
           width: @pdf.bounds.width,
           height: @pdf.bounds.height
+        @pdf.move_cursor_to @pdf.bounds.height
       end
     end
     

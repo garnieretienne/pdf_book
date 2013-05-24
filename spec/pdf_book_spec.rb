@@ -11,6 +11,7 @@ describe PDFBook do
 
     @cover_path = "#{File.dirname(__FILE__)}/fixtures/files/cover.jpg"
     @inner_cover_path = "#{File.dirname(__FILE__)}/fixtures/files/inner_cover.jpg"
+    @toc_path = "#{File.dirname(__FILE__)}/fixtures/files/toc.jpg"
   end
 
   # it 'should have a version number' do
@@ -193,38 +194,95 @@ describe PDFBook do
   #   book.to_file '/tmp/inner_cover.pdf'
   # end
 
-  it "should add an introduction" do
-    book_size = [152.4.mm, 228.6.mm]
+  # it "should add an introduction" do
+  #   book_size = [152.4.mm, 228.6.mm]
 
-    page_margin_bottom = 20.mm
-    book = PDFBook::Document.new(
-      font: 'Times-Roman',
-      page_size: book_size,
-      page_margin_left: 19.05.mm,
-      page_margin_right: 19.05.mm,
-      page_margin_top: 15.mm,
-      page_margin_bottom: 20.mm
-    )
+  #   page_margin_bottom = 20.mm
+  #   book = PDFBook::Document.new(
+  #     font: 'Times-Roman',
+  #     page_size: book_size,
+  #     page_margin_left: 19.05.mm,
+  #     page_margin_right: 19.05.mm,
+  #     page_margin_top: 15.mm,
+  #     page_margin_bottom: 20.mm
+  #   )
 
-    introduction = PDFBook::Section.new
+  #   introduction = PDFBook::Section.new
 
-    introduction.add_text "Introduction",
-      position: get_prawn_y(18.mm+15.mm, book_size[1], page_margin_bottom), # +15.mm: in FPDF, margin only used to set the cursor origin, but coordinate are only relative to the top left corner
-      font_style: :italic,
-      font_size: 20,
-      align: :center, 
-      color: get_prawn_color("151,53,15")
+  #   introduction.add_text "Introduction",
+  #     position: get_prawn_y(18.mm+15.mm, book_size[1], page_margin_bottom), # +15.mm: in FPDF, margin only used to set the cursor origin, but coordinate are only relative to the top left corner
+  #     font_style: :italic,
+  #     font_size: 20,
+  #     align: :center, 
+  #     color: get_prawn_color("151,53,15")
 
-    intro_text = "This is a great intro. " *10
-    introduction.add_text intro_text,
-      align: :center,
-      font_size: 11
+  #   intro_text = "This is a great intro. " *10
+  #   introduction.add_text intro_text,
+  #     align: :center,
+  #     font_size: 11
 
-    book.sections << introduction
-    book.to_file '/tmp/introduction.pdf'
-  end
+  #   book.sections << introduction
+  #   book.to_file '/tmp/introduction.pdf'
+  # end
 
-  it "should build a note page" do
+  # it "should build a note page" do
+  #   book_size = [152.4.mm, 228.6.mm]
+
+  #   margin_bottom = 20.mm
+  #   book = PDFBook::Document.new(
+  #     font: 'Times-Roman',
+  #     page_size: book_size,
+  #     page_margin_left: 19.05.mm,
+  #     page_margin_right: 19.05.mm,
+  #     page_margin_top: 15.mm,
+  #     page_margin_bottom: margin_bottom
+  #   )
+
+  #   note_page = PDFBook::Section.new
+
+  #   note_page.add_text "Notes",
+  #     position: get_prawn_y(25.mm+15.mm, book_size[1], margin_bottom),
+  #     font_size: 17,
+  #     align: :center,
+  #     font_style: :italic,
+  #     line_height: 4.65.mm,
+  #     gap: 4.65.mm
+
+  #   note_page.add_custom move_down: 2.5.mm
+
+  #   7.times do
+  #     note_page.add_custom({
+  #       line_width: 0.2.mm,
+  #       stroke_horizontal_rule: nil,
+  #       move_down: 15.5.mm,
+  #     })
+  #   end
+
+  #   footer_notes = [
+  #     'Printed in Canada',
+  #     Time.now.year.to_s
+  #   ]
+  #   note_page.add_text 'This book was created & published with the help of',
+  #     position: get_prawn_y(175.mm, book_size[1], margin_bottom),
+  #     font_size: 9,
+  #     align: :center,
+  #     gap: 4.65.mm
+  #   note_page.add_text 'www.HeritageCookbook.com',
+  #     font_size: 11,
+  #     align: :center, 
+  #     gap: 4.65.mm,
+  #     font_style: :bold
+  #   note_page.add_text footer_notes.join("\n"),
+  #     font_size: 9,
+  #     align: :center,
+  #     line_height: 4.65.mm
+
+  #   book.sections << note_page
+  #   book.to_file '/tmp/note_page.pdf'
+  # end
+
+
+  it 'should generate a complex document' do
     book_size = [152.4.mm, 228.6.mm]
 
     margin_bottom = 20.mm
@@ -236,6 +294,95 @@ describe PDFBook do
       page_margin_top: 15.mm,
       page_margin_bottom: margin_bottom
     )
+
+    ### Build the cover
+    ### ---------------
+
+    cover_margin_bottom = 15.mm+2.mm # should add 2 more mm to be the same as old script 
+    cover = PDFBook::Section.new(
+      background: @cover_path,
+      background_size: :margin,
+      page_margin_left: 13.mm,
+      page_margin_right: 13.mm,
+      page_margin_top: 13.mm,
+      page_margin_bottom: cover_margin_bottom
+    )
+
+    cover.add_image @large_image_path, 
+      position: get_prawn_y(95.mm, book_size[1], cover_margin_bottom),
+      max_width: 73.mm,
+      max_height: 60.mm
+
+    # Draw picture rectangle
+    # use user image max height and width
+    # x = (page_width - rectangle_width )/ 2-(margin_left + margin_right) /2
+    cover.add_custom(
+      line_width: 0.6.mm,
+      rectangle: [ [(book.page_width-73.mm)/2-(13.mm+13.mm)/2, get_prawn_y(95.mm, book_size[1], cover_margin_bottom)], 73.mm, 60.mm ],
+    )
+    
+    taglines = ["This is the best", "cookbook in the world"]
+    cover.add_text taglines.join("\n"),
+      position: get_prawn_y(175.mm, book_size[1], cover_margin_bottom),
+      font_style: :italic,
+      font_size: 13,
+      align: :center, 
+      line_height: 4.65.mm/2, # /2 is in the old script
+      color: get_prawn_color("151,53,15")
+
+    ### Build a blank page
+    ### ------------------
+
+    blank_page = PDFBook::Section.new
+
+    ### Build the inner cover
+    ### ---------------------
+
+    inner_cover = PDFBook::Section.new(
+      background: @inner_cover_path,
+      background_size: :margin,
+      page_margin_left: 13.mm,
+      page_margin_right: 13.mm,
+      page_margin_top: 13.mm,
+      page_margin_bottom: cover_margin_bottom
+    )
+
+    taglines = ["This is the best", "cookbook in the world"]
+    inner_cover.add_text taglines.join("\n"),
+      position: get_prawn_y(175.mm, book_size[1], cover_margin_bottom),
+      font_style: :italic,
+      font_size: 13,
+      align: :center, 
+      line_height: 4.65.mm/2,
+      color: get_prawn_color("151,53,15")
+
+    ### Build the introduction
+    ### ----------------------
+
+    introduction = PDFBook::Section.new(
+      index: "Introduction",
+      page_number: true
+    )
+
+    introduction.add_text "Introduction",
+      position: get_prawn_y(18.mm+15.mm, book_size[1], margin_bottom), # +15.mm: in FPDF, margin only used to set the cursor origin, but coordinate are only relative to the top left corner
+      font_style: :italic,
+      font_size: 20,
+      align: :center, 
+      gap: 4.65.mm,
+      line_height: 4.65.mm,
+      color: get_prawn_color("151,53,15")
+
+    intro_text = "This is a great intro.\nThe best cookbook ever made."
+    introduction.add_text intro_text,
+      align: :center,
+      font_size: 11,
+      gap: 4.65.mm*2
+
+    introduction.add_image @large_image_path
+
+    ### Build note page
+    ### ---------------
 
     note_page = PDFBook::Section.new
 
@@ -276,39 +423,55 @@ describe PDFBook do
       align: :center,
       line_height: 4.65.mm
 
+    ### Create the Table of Content
+
+    toc_template = PDFBook::Section.new(
+      background: @toc_path,
+      background_size: :margin,
+      page_margin_left: 13.mm,
+      page_margin_right: 13.mm,
+      page_margin_top: 13.mm,
+      page_margin_bottom: cover_margin_bottom,
+    )
+
+    toc_template.add_text "Table of Contents",
+      position: get_prawn_y(50.mm, book_size[1], cover_margin_bottom),
+      align: :center, 
+      color: get_prawn_color("151,53,15"),
+      font_style: :italic,
+      font_size: 20
+
+    book.table_of_content(
+      template: toc_template,
+      width: book_size[0]-(13.mm+28.mm)*2, # width-(margin_left+28+margin_right+28)
+      position: get_prawn_y(26+50.mm+4.65.mm, book_size[1], cover_margin_bottom)
+    )
+
+    # toc_template.add_text "TEST",
+    #   position: get_prawn_y(26+50.mm+4.65.mm, book_size[1], cover_margin_bottom),
+    #   font_size: 11
+
+    #TODO: can just send table of content
+    # book.table_of_content
+      # template: toc_template #TODO raise if not a section
+      # position: get_prawn_y(26+50.mm+4.65.mm, book_size[1], cover_margin_bottom),
+      # width: TODO
+      # start_page: 6,
+      # font_size: 11,
+    # )
+
+    ### Create the book
+    ### ----------------
+
+    book.sections << cover
+    book.sections << blank_page
+    book.sections << inner_cover
+    book.sections << blank_page
+    book.sections << introduction
     book.sections << note_page
-    book.to_file '/tmp/note_page.pdf'
+    book.sections << :table_of_content
+    book.to_file '/tmp/book.pdf'
   end
-
-
-  # it 'should generate a complex document' do
-  #   book = PDFBook::Document.new note_page: true
-
-  #   introduction = PDFBook::Section.new(title: 'Introduction')
-  #   introduction.add_text("This is the first paragraph")
-  #   introduction.add_text("This is the second paragraph")
-  #   introduction.add_column_text("Left column\nIs important", "Right column")
-
-  #   chapter_1 = PDFBook::Section.new(background: @gray_divider_path).add_chapter "Chapter 1"
-
-  #   gallery = PDFBook::Section.new(title: 'Gallery')
-  #   gallery.add_image(@slim_image_path)
-  #   gallery.add_text("A little bigger ...")
-  #   gallery.add_image(@large_image_path)
-  #   gallery.add_text("Portrait mode:")
-  #   gallery.add_image(@highter_image_path)
-
-  #   blank_page = PDFBook::Section.new
-  #   full_page_image = PDFBook::Section.new(title: "Awesome", background: @gray_divider_path)
-
-  #   book.sections << introduction
-  #   book.sections << blank_page
-  #   book.sections << chapter_1
-  #   book.sections << blank_page
-  #   book.sections << full_page_image
-  #   book.sections << gallery
-  #   # book.to_file '/tmp/book.pdf'
-  # end
 
 end
 
