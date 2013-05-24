@@ -12,6 +12,7 @@ describe PDFBook do
     @cover_path = "#{File.dirname(__FILE__)}/fixtures/files/cover.jpg"
     @inner_cover_path = "#{File.dirname(__FILE__)}/fixtures/files/inner_cover.jpg"
     @toc_path = "#{File.dirname(__FILE__)}/fixtures/files/toc.jpg"
+    @divider_path = "#{File.dirname(__FILE__)}/fixtures/files/divider.jpg"
   end
 
   # it 'should have a version number' do
@@ -344,7 +345,8 @@ describe PDFBook do
       page_margin_left: 13.mm,
       page_margin_right: 13.mm,
       page_margin_top: 13.mm,
-      page_margin_bottom: cover_margin_bottom
+      page_margin_bottom: cover_margin_bottom,
+      page_number: true
     )
 
     taglines = ["This is the best", "cookbook in the world"]
@@ -384,8 +386,9 @@ describe PDFBook do
     ### Build note page
     ### ---------------
 
-    note_page = PDFBook::Section.new
-
+    note_page = PDFBook::Section.new(
+      page_number: true
+    )
     note_page.add_text "Notes",
       position: get_prawn_y(25.mm+15.mm, book_size[1], margin_bottom),
       font_size: 17,
@@ -424,6 +427,7 @@ describe PDFBook do
       line_height: 4.65.mm
 
     ### Create the Table of Content
+    ### ---------------------------
 
     toc_template = PDFBook::Section.new(
       background: @toc_path,
@@ -432,6 +436,7 @@ describe PDFBook do
       page_margin_right: 13.mm,
       page_margin_top: 13.mm,
       page_margin_bottom: cover_margin_bottom,
+      page_number: true
     )
 
     toc_template.add_text "Table of Contents",
@@ -447,29 +452,54 @@ describe PDFBook do
       position: get_prawn_y(26+50.mm+4.65.mm, book_size[1], cover_margin_bottom)
     )
 
-    # toc_template.add_text "TEST",
-    #   position: get_prawn_y(26+50.mm+4.65.mm, book_size[1], cover_margin_bottom),
-    #   font_size: 11
+    ### Build Pasta Section
+    ### -------------------
 
-    #TODO: can just send table of content
-    # book.table_of_content
-      # template: toc_template #TODO raise if not a section
-      # position: get_prawn_y(26+50.mm+4.65.mm, book_size[1], cover_margin_bottom),
-      # width: TODO
-      # start_page: 6,
-      # font_size: 11,
+    pasta_section = PDFBook::Section.new(
+      background: @divider_path,
+      background_size: :margin,
+      page_margin_left: 13.mm,
+      page_margin_right: 13.mm,
+      page_margin_top: 13.mm,
+      page_margin_bottom: cover_margin_bottom,
+      page_number: true,
+      index: "Pasta"
+    )
+
+    pasta_section.add_text "Pasta",
+      position: get_prawn_y(70.mm, book_size[1], cover_margin_bottom),
+      align: :center,
+      color: get_prawn_color("151,53,15"),
+      font_style: :italic,
+      font_size: 20,
+      line_height: 4.65.mm,
+      gap: 4.65.mm
+
+    # 80 90
+    pasta_section.add_image @large_image_path,
+      max_width: 80.mm,
+      max_height: 90.mm
+      
+    ### Build Chocolate taste recipe
+    ### ----------------------------
+
+    # chocolate_taste_recipe = PDFBook::Section.new(
+    #   page_number: true
     # )
 
     ### Create the book
     ### ----------------
 
-    book.sections << cover
-    book.sections << blank_page
-    book.sections << inner_cover
-    book.sections << blank_page
-    book.sections << introduction
-    book.sections << note_page
-    book.sections << :table_of_content
+    book << cover
+    book << blank_page
+    book << inner_cover
+    book << blank_page
+    book << introduction
+    book << note_page
+    book << :table_of_content
+    book << blank_page
+    book << blank_page if book.pages % 2 == 1 # Sections page must always be right
+    book << pasta_section
     book.to_file '/tmp/book.pdf'
   end
 

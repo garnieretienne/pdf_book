@@ -41,10 +41,28 @@ class PDFBook::Document
     )
   end
 
+  def <<(section)
+    self.sections << section
+  end
+
   def table_of_content(options={})
     @toc_template = options[:template] || PDFBook::Section.new
     @toc_position = options[:position] || @pdf.bounds.top
     @toc_width    = options[:width]    || @pdf.bounds.width
+  end
+
+  def pages
+    old_pdf = @pdf
+    @pdf = Prawn::Document.new(
+      page_size: @page_size,
+      skip_page_creation: true
+    )
+
+    render
+    page_count = @pdf.page_count
+    
+    @pdf = old_pdf
+    return page_count
   end
 
   def to_pdf
@@ -67,6 +85,7 @@ class PDFBook::Document
   def render_table_of_content
     cells = []
     @toc.each do |label, page|
+      page = (@page_number.empty?) ? page : page - @page_number.first + 1
       label_cell = @pdf.make_cell(content: label.to_s)
       page_cell = @pdf.make_cell(content: page.to_s)
       page_cell.align = :right
@@ -94,7 +113,7 @@ class PDFBook::Document
     sections.each do |section|
       case section
       when :table_of_content
-        render_table_of_content
+        render_table_of_content # TODO: programmer render_table_of_content(at_page) a la fin du render general
       else
         raise TypeError, "#{section.class} is not PDFBook::Section" if section.class != PDFBook::Section
         render_section section
