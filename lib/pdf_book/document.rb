@@ -222,7 +222,11 @@ class PDFBook::Document
     end
 
     if section.page_number
-      @page_number << @pdf.page_count
+      page_number = @pdf.page_number
+      if @toc_page
+        page_number += 1 if @pdf.page_number > @toc_page 
+      end
+      @page_number << page_number
     end
   end
 end

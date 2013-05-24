@@ -478,7 +478,7 @@ describe PDFBook do
     ### Build Chocolate taste recipe
     ### ----------------------------
 
-    chocolate_taste_recipe_story = PDFBook::Section.new
+    chocolate_taste_recipe_story = PDFBook::Section.new page_number: true
 
     chocolate_taste_recipe_story.add_image @large_image_path,
       max_width: book.page_width - ( book.margin_options[:left_margin] + book.margin_options[:right_margin] ) + 6.35.mm*2,
@@ -488,7 +488,7 @@ describe PDFBook do
     chocolate_taste_recipe_story.add_text "This is my favorite !\n I known you will like it !",
       font_size: 11
 
-    chocolate_taste_recipe = PDFBook::Section.new
+    chocolate_taste_recipe = PDFBook::Section.new page_number: true
 
     chocolate_taste_recipe.add_text "Chocolate taste",
       font_size: 17,
