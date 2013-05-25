@@ -1,9 +1,10 @@
 require 'prawn'
+require 'open-uri'
 
 class PDFBook::Document
 
   attr_accessor :sections 
-  attr_reader :page_width, :page_height, :margin_options
+  attr_reader :page_width, :page_height, :margin_options, :pdf, :last_position
 
   def initialize(options={})
     @note_page ||= options[:note_page]
@@ -60,10 +61,16 @@ class PDFBook::Document
   end
 
   def pages
-    old_pdf = @pdf
-    build_document && render
-    page_count = @pdf.page_count
-    @pdf = old_pdf
+    page_count = 0
+    if @pdf.page_count == 0
+      old_pdf = @pdf
+      build_document 
+      render
+      page_count = @pdf.page_count
+      @pdf = old_pdf
+    else
+      page_count = @pdf.page_count
+    end
     return page_count
   end
 
@@ -75,6 +82,38 @@ class PDFBook::Document
   def to_file(path)
     render
     @pdf.render_file path
+  end
+
+  def render
+    
+    if @note_page
+      render_note_page
+      @pdf.start_new_page
+    end
+
+    sections.each do |section|
+      case section
+      when :table_of_content
+        @toc_page = @pdf.page_count
+      when :index
+        @index_page = @pdf.page_count
+      else
+        raise TypeError, "#{section.class} is not PDFBook::Section" if section.class != PDFBook::Section
+        render_section section
+      end
+    end
+
+    render_index if @index_page
+    render_table_of_content if @toc_page
+
+    #@index?
+    @pdf.number_pages "<page>",
+      at: [0, -20],
+      align: :center,
+      page_filter: @page_number,
+      start_count_at: (!@page_number.empty? && @toc_start_at) ? @page_number.first-@toc_start_at+1 : 1
+
+    return true
   end
 
   private
@@ -114,7 +153,7 @@ class PDFBook::Document
   
     ordered = {}
     @index.each{ |label, page| ordered["#{label}"] = {page: page, type: :subtopic} }
-    @toc.each{ |label, page| ordered["#{label}"] = {page: page, type: :topic} }
+    @toc.each{ |label, page| ordered["#{label}"] = {page: page, type: :topic} } if @toc_page
     
     @index_template.add_custom move_cursor_to: @index_position
 
@@ -126,7 +165,9 @@ class PDFBook::Document
       parameters[:page] = (@index_page < parameters[:page]) ? parameters[:page] + 1 : parameters[:page]
 
       # The 'Table of Content' page is insered at the end
-      parameters[:page] = (@toc_page < parameters[:page]) ? parameters[:page] + 1 : parameters[:page]
+      if @toc_page
+        parameters[:page] = (@toc_page < parameters[:page]) ? parameters[:page] + 1 : parameters[:page]
+      end
 
       # 'Start at' parameter
       parameters[:page] = parameters[:page] - @index_start_at + 1
@@ -160,11 +201,10 @@ class PDFBook::Document
     cells = []
     @toc.sort_by{|label, page| page}.each do |label, page|
 
-      # page = (@toc_page < page) ? page + 1 : page # the 'Table of Content' page is insered at the end
-      # page = page - @toc_start_at + 1
-
       # The 'Index' page is insered at the end
-      page = (@index_page < page) ? page + 1 : page
+      if @index_page
+        page = (@index_page < page) ? page + 1 : page
+      end
 
       # The 'Table of Content' page is insered at the end
       page = (@toc_page < page) ? page + 1 : page
@@ -190,38 +230,6 @@ class PDFBook::Document
     end
     @pdf.go_to_page @toc_page
     render_section @toc_template
-  end
-
-  def render
-    
-    if @note_page
-      render_note_page
-      @pdf.start_new_page
-    end
-
-    sections.each do |section|
-      case section
-      when :table_of_content
-        @toc_page = @pdf.page_count
-      when :index
-        @index_page = @pdf.page_count
-      else
-        raise TypeError, "#{section.class} is not PDFBook::Section" if section.class != PDFBook::Section
-        render_section section
-      end
-    end
-
-    render_index if @index_page
-    render_table_of_content if @toc_page
-
-    #@index?
-    @pdf.number_pages "<page>",
-      at: [0, -20],
-      align: :center,
-      page_filter: @page_number,
-      start_count_at: (!@page_number.empty? && @toc_start_at) ? @page_number.first-@toc_start_at+1 : 1
-
-    @pdf
   end
 
   def render_note_page
@@ -302,15 +310,17 @@ class PDFBook::Document
         max_width = content.max_width || @pdf.bounds.width
         max_height = content.max_height || @pdf.bounds.height-(@pdf.bounds.height-@pdf.cursor)
         if content.width > max_width || content.height > max_height
-          @pdf.image(content.data, fit: [max_width, max_height], position: :center)
+          @pdf.image(open(content.data), fit: [max_width, max_height], position: :center)
         else
-          @pdf.image(content.data, position: :center)
+          @pdf.image(open(content.data), position: :center)
         end
         @pdf.move_down content.gap if content.gap
 
       else
         raise TypeError, "This content (#{content.class}) is not allowed"
       end
+
+      record_last_position
     end
 
     if section.page_number
@@ -323,5 +333,10 @@ class PDFBook::Document
       end
       @page_number << page_number
     end
+  end
+
+  # Record the last know cursor position in the last page with content
+  def record_last_position
+    @last_position = @pdf.cursor
   end
 end

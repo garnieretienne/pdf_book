@@ -1,4 +1,5 @@
-require "fastimage"
+require 'fastimage'
+require 'open-uri'
 
 module PDFBook::Content
 
@@ -59,7 +60,7 @@ module PDFBook::Content
 
     # Require a png image (some 'png' block the script)
     def initialize(path, options={})
-      raise "Image not found at '#{path}'" if !File.exist?(path)
+      # raise "Image not found at '#{path}'" if !File.exist?(path)
       @type = FastImage.type(path)
       raise "Image must be a JPG (#{@type})" if ![:jpg, :jpeg].include? @type
       

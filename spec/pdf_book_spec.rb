@@ -560,7 +560,80 @@ describe PDFBook do
     book << chocolate_taste_recipe
     book << :index
     book.to_file '/tmp/book.pdf'
+
+    book.pages.should == 12
   end
 
+  it "should be able to access the last Y position in the last page with content" do
+    book_size = [152.4.mm, 228.6.mm]
+
+    margin_bottom = 20.mm
+    book = PDFBook::Document.new(
+      font: 'Times-Roman',
+      page_size: book_size,
+      page_margin_left: 19.05.mm,
+      page_margin_right: 19.05.mm,
+      page_margin_top: 15.mm,
+      page_margin_bottom: margin_bottom,
+      watermark: "P R E V I E W"
+    )
+
+    ### Build Chocolate taste recipe
+    ### ----------------------------
+
+    chocolate_taste_recipe_story = PDFBook::Section.new page_number: true
+
+    chocolate_taste_recipe_story.add_image @large_image_path,
+      max_width: book.page_width - ( book.margin_options[:left_margin] + book.margin_options[:right_margin] ) + 6.35.mm*2,
+      max_height: (book.page_height - ( book.margin_options[:top_margin] + book.margin_options[:bottom_margin] ) - 4.65.mm) / 2 + 10.mm,
+      gap: 4.65.mm*2
+
+    chocolate_taste_recipe_story.add_text "This is my favorite !\n I known you will like it !",
+      font_size: 11
+
+    chocolate_taste_recipe = PDFBook::Section.new(
+      page_number: true,
+      index: "Chocolate Taste"
+    )
+
+    chocolate_taste_recipe.add_text "Chocolate taste",
+      font_size: 17,
+      font_style: :bold,
+      line_height: 4.65.mm/2
+
+    chocolate_taste_recipe.add_text "Contributed By: kurt!",
+      font_size: 11,
+      line_height: 4.65.mm
+
+    left_column_ingredients = [
+      "Pasta",
+      "Chocolate"
+    ]
+
+    right_column_ingredients = [
+      "Salt",
+      "Peeper",
+      "Sugar"
+    ]
+
+    column_options = {
+      font_size: 11,
+      line_height: 2,
+      gap: 4.65.mm
+    }
+    chocolate_taste_recipe.add_column_text column_options, 
+      left_column_ingredients.join("\n"), 
+      right_column_ingredients.join("\n")
+
+    chocolate_taste_recipe.add_text "1/ Put evrything in a cup\n 2/ Burn it!\n 3/ It's ready !",
+      font_size: 11
+
+    book << chocolate_taste_recipe_story
+    book << chocolate_taste_recipe
+    book.to_file '/tmp/recipe.pdf'
+
+    book.pages.should == 2
+    book.last_position.to_i.should == 396
+  end
 end
 
