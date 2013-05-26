@@ -56,7 +56,7 @@ module PDFBook::Content
 
   class Image
 
-    attr_accessor :data, :width, :height, :max_width, :max_height, :position, :gap
+    attr_accessor :data, :width, :height, :max_width, :max_height, :position, :gap, :mark_image_area
 
     # Require a png image (some 'png' block the script)
     def initialize(path, options={})
@@ -73,6 +73,7 @@ module PDFBook::Content
       @max_width ||= options[:max_width]
       @max_height ||= options[:max_height]
       @gap ||= options[:gap]
+      @mark_image_area ||= options[:mark_image_area]
     end
   end
 end

@@ -294,8 +294,7 @@ describe PDFBook do
       page_margin_right: 19.05.mm,
       page_margin_top: 15.mm,
       page_margin_bottom: margin_bottom,
-      watermark: "P R E V I E W",
-      mark_image_area: true
+      watermark: "P R E V I E W"
     )
 
     ### Build the cover
@@ -314,7 +313,8 @@ describe PDFBook do
     cover.add_image @large_image_path, 
       position: get_prawn_y(95.mm, book_size[1], cover_margin_bottom),
       max_width: 73.mm,
-      max_height: 60.mm
+      max_height: 60.mm,
+      mark_image_area: true
 
     # Draw picture rectangle
     # use user image max height and width

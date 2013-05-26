@@ -39,9 +39,6 @@ class PDFBook::Document
     # Watermark
     @watermark ||= options[:watermark]
 
-    # Image area border
-    @mark_image_area ||= options[:mark_image_area]
-
     build_document
   end
 
@@ -345,7 +342,7 @@ class PDFBook::Document
         else
           @pdf.image(open(content.data), position: :center)
         end
-        if @mark_image_area
+        if content.mark_image_area
           @pdf.line_width(2)
           @pdf.stroke_rectangle(image_origin, max_width, max_height)
           @pdf.line_width(1)
