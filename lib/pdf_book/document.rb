@@ -4,7 +4,7 @@ require 'open-uri'
 class PDFBook::Document
 
   attr_accessor :sections 
-  attr_reader :page_width, :page_height, :margin_options, :pdf, :last_position
+  attr_reader :page_width, :page_height, :margin_options, :pdf, :last_position, :index_pages
 
   def initialize(options={})
     @note_page ||= options[:note_page]
@@ -39,6 +39,9 @@ class PDFBook::Document
     # Watermark
     @watermark ||= options[:watermark]
 
+    # Image area border
+    @mark_image_area ||= options[:mark_image_area]
+
     build_document
   end
 
@@ -62,15 +65,17 @@ class PDFBook::Document
 
   def pages
     page_count = 0
+
+    # If the document is not rendered yet
     if @pdf.page_count == 0
-      old_pdf = @pdf
-      build_document 
-      render
-      page_count = @pdf.page_count
-      @pdf = old_pdf
+      sandbox do
+        render
+        page_count = @pdf.page_count
+      end
     else
       page_count = @pdf.page_count
     end
+
     return page_count
   end
 
@@ -86,10 +91,10 @@ class PDFBook::Document
 
   def render
     
-    if @note_page
-      render_note_page
-      @pdf.start_new_page
-    end
+    # if @note_page
+    #   render_note_page
+    #   @pdf.start_new_page
+    # end
 
     sections.each do |section|
       case section
@@ -142,6 +147,27 @@ class PDFBook::Document
     end
   end
 
+  # Work in a sandbox (nothing will affect the real document).
+  def sandbox(&block)
+
+    # Backup current state
+    backup = {}
+    backup[:pdf]            = @pdf
+    backup[:index_template] = @index_template
+    backup[:toc_template]   = @toc_template
+    
+    # Recreate a new temporary PDF to work with
+    build_document
+    @index_template = PDFBook::Section.new
+    @toc_template   = PDFBook::Section.new
+    block.call
+
+    # Restore old state
+    @pdf            = backup[:pdf]
+    @index_template = backup[:index_template]
+    @toc_template   = backup[:toc_template]
+  end
+
   def init_new_page(new_margin_options={})
     @pdf.start_new_page @margin_options.merge(new_margin_options)
     @pdf.font(@font)
@@ -192,8 +218,12 @@ class PDFBook::Document
         ]
       end
     end
-    @pdf.go_to_page @index_page
+    @pdf.go_to_page @index_page if @index_page > 0
+
+    # Render and record the number of index pages
+    page_number_before = @pdf.page_count
     render_section @index_template
+    @index_pages = @pdf.page_count - page_number_before
   end
 
   def render_table_of_content
@@ -228,7 +258,7 @@ class PDFBook::Document
         ]
       )
     end
-    @pdf.go_to_page @toc_page
+    @pdf.go_to_page @toc_page if @toc_page > 0
     render_section @toc_template
   end
 
@@ -302,17 +332,23 @@ class PDFBook::Document
       when PDFBook::Content::ColumnText
         @pdf.table [content.data], 
           width: @pdf.bounds.width, 
-          cell_style: { borders: [], size: content.font_size, leading: content.line_height}
+          cell_style: { borders: [], size: content.font_size, leading: content.line_height, padding: 0}
         @pdf.move_down content.gap if content.gap
 
       when PDFBook::Content::Image
         @pdf.move_cursor_to content.position if content.position
         max_width = content.max_width || @pdf.bounds.width
         max_height = content.max_height || @pdf.bounds.height-(@pdf.bounds.height-@pdf.cursor)
+        image_origin = [(@pdf.bounds.width-max_width)/2, @pdf.cursor]
         if content.width > max_width || content.height > max_height
           @pdf.image(open(content.data), fit: [max_width, max_height], position: :center)
         else
           @pdf.image(open(content.data), position: :center)
+        end
+        if @mark_image_area
+          @pdf.line_width(2)
+          @pdf.stroke_rectangle(image_origin, max_width, max_height)
+          @pdf.line_width(1)
         end
         @pdf.move_down content.gap if content.gap
 

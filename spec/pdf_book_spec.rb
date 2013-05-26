@@ -5,7 +5,7 @@ require 'prawn/measurement_extensions'
 describe PDFBook do
   before do
     @slim_image_path = "#{File.dirname(__FILE__)}/fixtures/files/slim.jpg"
-    @large_image_path = "#{File.dirname(__FILE__)}/fixtures/files/large.jpg"
+    @large_image_path = "#{File.dirname(__FILE__)}/fixtures/files/large2.jpg"
     @highter_image_path = "#{File.dirname(__FILE__)}/fixtures/files/highter.jpg"
     @gray_divider_path = "#{File.dirname(__FILE__)}/fixtures/files/gray_divider.jpg"
 
@@ -294,7 +294,8 @@ describe PDFBook do
       page_margin_right: 19.05.mm,
       page_margin_top: 15.mm,
       page_margin_bottom: margin_bottom,
-      watermark: "P R E V I E W"
+      watermark: "P R E V I E W",
+      mark_image_area: true
     )
 
     ### Build the cover
@@ -318,10 +319,10 @@ describe PDFBook do
     # Draw picture rectangle
     # use user image max height and width
     # x = (page_width - rectangle_width )/ 2-(margin_left + margin_right) /2
-    cover.add_custom(
-      line_width: 0.6.mm,
-      rectangle: [ [(book.page_width-73.mm)/2-(13.mm+13.mm)/2, get_prawn_y(95.mm, book_size[1], cover_margin_bottom)], 73.mm, 60.mm ],
-    )
+    # cover.add_custom(
+    #   line_width: 0.6.mm,
+    #   rectangle: [ [(book.page_width-73.mm)/2-(13.mm+13.mm)/2, get_prawn_y(95.mm, book_size[1], cover_margin_bottom)], 73.mm, 60.mm ],
+    # )
     
     taglines = ["This is the best", "cookbook in the world"]
     cover.add_text taglines.join("\n"),
@@ -459,7 +460,7 @@ describe PDFBook do
       page_margin_right: 13.mm,
       page_margin_top: 13.mm,
       page_margin_bottom: cover_margin_bottom,
-      toc: "Pasta"
+      toc: "Student"
     )
 
     pasta_section.add_text "Pasta",
@@ -541,7 +542,7 @@ describe PDFBook do
     book.index(
       template: index_template,
       start_at: 3,
-      position: get_prawn_y(60+4.65.mm*2, book_size[1], margin_bottom)
+      position: get_prawn_y(60+8.mm, book_size[1], margin_bottom)
     )
 
     ### Create the book
@@ -633,7 +634,7 @@ describe PDFBook do
     book.to_file '/tmp/recipe.pdf'
 
     book.pages.should == 2
-    book.last_position.to_i.should == 396
+    book.last_position.to_i.should == 406
   end
 end
 

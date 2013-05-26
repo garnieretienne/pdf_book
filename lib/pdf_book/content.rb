@@ -62,10 +62,10 @@ module PDFBook::Content
     def initialize(path, options={})
       # raise "Image not found at '#{path}'" if !File.exist?(path)
       @type = FastImage.type(path)
-      raise "Image must be a JPG (#{@type})" if ![:jpg, :jpeg].include? @type
+      # raise "Image must be a JPG (#{@type})" if ![:jpg, :jpeg].include? @type
       
       @data = path
-      @width, @height = FastImage.size(path, raise_on_failure: true, timeout: 2)
+      @width, @height = FastImage.size(path, raise_on_failure: true, timeout: 5)
       @mode = (@width > @height) ? :landscape : :portrait
       @ratio = @width / @height
 
