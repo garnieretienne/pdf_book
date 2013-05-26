@@ -185,51 +185,76 @@ class PDFBook::Document
   end
 
   def render_index
+    return false if !@toc_page
     index if !@index_template
   
-    ordered = {}
-    @index.each{ |label, page| ordered["#{label}"] = {page: page, type: :subtopic} }
-    @toc.each{ |label, page| ordered["#{label}"] = {page: page, type: :topic} } if @toc_page
-    
-    @index_template.add_custom move_cursor_to: @index_position
+    # Build a Hash of topic and associed subtopics ordered by page numbers
+    ordered = {} 
+    @toc.each{ |label, page| ordered["#{label}"] = {page: page, subtopics: {}}}
+    last_ordered_topic_key = ordered.keys.last
+    @index.each do |label, page|
+      last_topic = {label: ordered.first[0], page: ordered.first[1][:page]}
+      ordered.each do |topic_label, topic_attributes|
+        if page > last_topic[:page] && page < topic_attributes[:page]
+          ordered["#{last_topic[:label]}"][:subtopics]["#{label}"] = {page: page}
+        elsif page > last_topic[:page] && topic_label == last_ordered_topic_key
+          ordered["#{last_ordered_topic_key}"][:subtopics]["#{label}"] = {page: page}
+        end
+        last_topic = {label: topic_label, page: topic_attributes[:page]}
+      end
+    end
 
+    # Order topics by names and display them
     topic_size=9
     subtopic_size = 9
-    ordered.sort_by{|label, attributes| attributes[:page]}.each do |label, parameters|
+    @index_template.add_custom move_cursor_to: @index_position
+    ordered.sort_by{|label, attributes| label}.each do |label, parameters|
 
-      # The 'Index' page is insered at the end
+      # Index page is insered at the end and can modify registered page numbers
       parameters[:page] = (@index_page < parameters[:page]) ? parameters[:page] + 1 : parameters[:page]
 
-      # The 'Table of Content' page is insered at the end
-      if @toc_page
-        parameters[:page] = (@toc_page < parameters[:page]) ? parameters[:page] + 1 : parameters[:page]
-      end
+      # Toc page is insered at the end and can modify registered page numbers
+      parameters[:page] = (@toc_page < parameters[:page]) ? parameters[:page] + 1 : parameters[:page]
 
-      # 'Start at' parameter
+      # 'Start at' modificateur
       parameters[:page] = parameters[:page] - @index_start_at + 1
 
-      if parameters[:type] == :topic
-        @index_template.add_custom move_down: 10
-        line_width = @pdf.bounds.width - @pdf.width_of("#{label},    #{parameters[:page]}", size: topic_size, style: :bold)-10
+      # Display topic
+      @index_template.add_custom move_down: 10
+      line_width = @pdf.bounds.width - @pdf.width_of("#{label},    #{parameters[:page]}", size: topic_size, style: :bold)-10
+      @index_template.add_custom(
+        text: [ 
+          "#{label},    #{parameters[:page]}", 
+          size: topic_size,
+          style: :bold
+        ],
+        move_up: 4,
+        horizontal_line: [@pdf.width_of("#{label},    #{parameters[:page]}", size: topic_size)+10, line_width],
+        move_down: 10
+      )
+
+      # Order subtopics by name and display them
+      parameters[:subtopics].sort_by{|subtopic_label, subtopic_parameters| subtopic_label}.each do |subtopic_label, subtopic_parameters|
+        
+        # Index page is insered at the end and can modify registered page numbers
+        subtopic_parameters[:page] = (@index_page < subtopic_parameters[:page]) ? subtopic_parameters[:page] + 1 : subtopic_parameters[:page]
+
+        # Toc page is insered at the end and can modify registered page numbers
+        subtopic_parameters[:page] = (@toc_page < subtopic_parameters[:page]) ? subtopic_parameters[:page] + 1 : subtopic_parameters[:page]
+
+        # 'Start at' modificateur
+        subtopic_parameters[:page] = subtopic_parameters[:page] - @index_start_at + 1
+
+        # Display subtopic
         @index_template.add_custom(
           text: [ 
-            "#{label},    #{parameters[:page]}", 
-            size: topic_size,
-            style: :bold
-          ],
-          move_up: 4,
-          horizontal_line: [@pdf.width_of("#{label},    #{parameters[:page]}", size: topic_size)+10, line_width],
-          move_down: 10
-        )
-      else
-        @index_template.add_custom(
-          text: [ 
-            "#{label},  #{parameters[:page]}", 
+            "#{subtopic_label},  #{subtopic_parameters[:page]}", 
           size: subtopic_size
           ]
         )
       end
     end
+
     @pdf.go_to_page @index_page if @index_page > 0
 
     # Render and record the number of index pages
