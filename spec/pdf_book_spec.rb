@@ -357,7 +357,8 @@ describe PDFBook do
       font_size: 13,
       align: :center, 
       line_height: 4.65.mm/2,
-      color: get_prawn_color("151,53,15")
+      color: get_prawn_color("151,53,15"),
+      font: "Helvetica"
 
     ### Build the introduction
     ### ----------------------

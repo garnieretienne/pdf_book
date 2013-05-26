@@ -196,16 +196,15 @@ class PDFBook::Document
       parameters[:page] = parameters[:page] - @index_start_at + 1
 
       if parameters[:type] == :topic
-        line_width = @pdf.bounds.width - (@pdf.width_of(label.to_s, size: topic_size) + @pdf.width_of(parameters[:page].to_s, size: topic_size))-2
-        space_number = line_width / @pdf.width_of(" ", size: topic_size)
+        line_width = @pdf.bounds.width - @pdf.width_of("#{label},    #{parameters[:page]}", size: topic_size, style: :bold)-10
         @index_template.add_custom(
           text: [ 
-            "#{label}"+" "*space_number+"#{parameters[:page]}", 
+            "#{label},    #{parameters[:page]}", 
             size: topic_size,
             style: :bold
           ],
           move_up: 4,
-          horizontal_line: [@pdf.width_of("#{label.to_s}", size: topic_size)+topic_size, line_width+topic_size],
+          horizontal_line: [@pdf.width_of("#{label},    #{parameters[:page]}", size: topic_size)+10, line_width],
           move_down: 10
         )
       else
@@ -317,14 +316,16 @@ class PDFBook::Document
         @pdf.move_down 60
 
       when PDFBook::Content::Text
-        @pdf.move_cursor_to content.position if content.position
-        @pdf.text content.data, 
-          align: content.align, 
-          size: content.font_size, 
-          style: content.font_style, 
-          leading: content.line_height,
-          color: content.color
-        @pdf.move_down content.gap if content.gap
+        @pdf.font content.font || @font do
+          @pdf.move_cursor_to content.position if content.position
+          @pdf.text content.data, 
+            align: content.align, 
+            size: content.font_size, 
+            style: content.font_style, 
+            leading: content.line_height,
+            color: content.color
+          @pdf.move_down content.gap if content.gap
+        end
 
       when PDFBook::Content::ColumnText
         @pdf.table [content.data], 
