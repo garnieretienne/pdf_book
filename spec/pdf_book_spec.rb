@@ -288,7 +288,7 @@ describe PDFBook do
 
     margin_bottom = 20.mm
     book = PDFBook::Document.new(
-      font: 'Times-Roman',
+      font: 'Times',
       page_size: book_size,
       page_margin_left: 19.05.mm,
       page_margin_right: 19.05.mm,
@@ -296,6 +296,24 @@ describe PDFBook do
       page_margin_bottom: margin_bottom,
       watermark: "P R E V I E W"
     )
+
+    # Add Arial and Times fonts
+    # apt-get install ttf-liberation
+    FONT_DIR="/usr/share/fonts/truetype/liberation"
+    book.font_families = {
+      "Arial" => {  
+        bold:        "#{FONT_DIR}/LiberationSans-Bold.ttf",
+        italic:      "#{FONT_DIR}/LiberationSans-Italic.ttf",
+        bold_italic: "#{FONT_DIR}/LiberationSans-BoldItalic.ttf",
+        normal:      "#{FONT_DIR}/LiberationSans-Regular.ttf"
+      },
+      "Times" => {
+        bold:        "#{FONT_DIR}/LiberationSerif-Bold.ttf",
+        italic:      "#{FONT_DIR}/LiberationSerif-Italic.ttf",
+        bold_italic: "#{FONT_DIR}/LiberationSerif-BoldItalic.ttf",
+        normal:      "#{FONT_DIR}/LiberationSerif-Regular.ttf"
+      }
+    }
 
     ### Build the cover
     ### ---------------

@@ -3,7 +3,7 @@ require 'open-uri'
 
 class PDFBook::Document
 
-  attr_accessor :sections 
+  attr_accessor :sections
   attr_reader :page_width, :page_height, :margin_options, :pdf, :last_position, :index_pages
 
   def initialize(options={})
@@ -40,6 +40,12 @@ class PDFBook::Document
     @watermark ||= options[:watermark]
 
     build_document
+  end
+
+  # Add custom font families to the document
+  def font_families=(font_families)
+    @font_families = font_families
+    update_font_families
   end
 
   def <<(section)
@@ -127,6 +133,9 @@ class PDFBook::Document
       skip_page_creation: true
     )
 
+    # Add custom font families if exist
+    update_font_families
+
     # Watermark
     if @watermark
       @pdf.create_stamp("watermark") do
@@ -142,6 +151,10 @@ class PDFBook::Document
           :rotate_around => :center
       end
     end
+  end
+
+  def update_font_families
+    @pdf.font_families.update @font_families if @font_families
   end
 
   # Work in a sandbox (nothing will affect the real document).
