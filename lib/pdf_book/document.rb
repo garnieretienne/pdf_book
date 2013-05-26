@@ -209,6 +209,7 @@ class PDFBook::Document
       parameters[:page] = parameters[:page] - @index_start_at + 1
 
       if parameters[:type] == :topic
+        @index_template.add_custom move_down: 10
         line_width = @pdf.bounds.width - @pdf.width_of("#{label},    #{parameters[:page]}", size: topic_size, style: :bold)-10
         @index_template.add_custom(
           text: [ 
@@ -221,10 +222,12 @@ class PDFBook::Document
           move_down: 10
         )
       else
-        @index_template.add_custom text: [ 
-          "#{label},  #{parameters[:page]}", 
+        @index_template.add_custom(
+          text: [ 
+            "#{label},  #{parameters[:page]}", 
           size: subtopic_size
-        ]
+          ]
+        )
       end
     end
     @pdf.go_to_page @index_page if @index_page > 0
