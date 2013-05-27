@@ -462,7 +462,7 @@ describe PDFBook do
       font_style: :italic,
       font_size: 20
 
-    book.table_of_content(
+    book.table_of_content_options(
       template: toc_template,
       width: book_size[0]-(13.mm+28.mm)*2, # width-(margin_left+28+margin_right+28)
       position: get_prawn_y(26+50.mm+4.65.mm, book_size[1], cover_margin_bottom),
@@ -558,7 +558,7 @@ describe PDFBook do
       gap: 4.65.mm
 
 
-    book.index(
+    book.index_options(
       template: index_template,
       start_at: 3,
       position: get_prawn_y(60+8.mm, book_size[1], margin_bottom)
@@ -711,7 +711,7 @@ describe PDFBook do
       gap: 4.65.mm
 
 
-    book.index(
+    book.index_options(
       template: index_template,
       start_at: 3,
       position: get_prawn_y(60+8.mm, book_size[1], margin_bottom)

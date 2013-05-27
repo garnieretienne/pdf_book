@@ -53,14 +53,14 @@ class PDFBook::Document
     self.sections << section
   end
 
-  def table_of_content(options={})
+  def table_of_content_options(options={})
     @toc_template = options[:template] || PDFBook::Section.new
     @toc_position = options[:position] || @pdf.bounds.top
     @toc_width    = options[:width]    || @pdf.bounds.width
     @toc_start_at = options[:start_at] || 1
   end
 
-  def index(options={})
+  def index_options(options={})
     @index_template = options[:template] || PDFBook::Section.new
     @index_position = options[:position] || @pdf.bounds.top
     @index_width    = options[:width]    || @pdf.bounds.width
@@ -187,7 +187,7 @@ class PDFBook::Document
 
   def render_index
     return false if !@toc_page
-    index if !@index_template
+    table_of_content_options if !@index_template
   
     # Build a Hash of topic and associed subtopics ordered by page numbers
     ordered = {} 
@@ -299,7 +299,7 @@ class PDFBook::Document
   end
 
   def render_table_of_content
-    table_of_content if !@toc_template
+    table_of_content_options if !@toc_template
     cells = []
     @toc.sort_by{|label, page| page}.each do |label, page|
 
