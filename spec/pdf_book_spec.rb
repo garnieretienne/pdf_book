@@ -499,7 +499,7 @@ describe PDFBook do
     ### Build Chocolate taste recipe
     ### ----------------------------
 
-    chocolate_taste_recipe_story = PDFBook::Section.new page_number: true
+    chocolate_taste_recipe_story = PDFBook::Section.new page_number: true, extra: "A little story"
 
     chocolate_taste_recipe_story.add_image @large_image_path,
       max_width: book.page_width - ( book.margin_options[:left_margin] + book.margin_options[:right_margin] ) + 6.35.mm*2,
@@ -582,6 +582,7 @@ describe PDFBook do
     book << PDFBook::Section.new(toc: "Pages")
     book << PDFBook::Section.new(index: "bbbb")
     book << PDFBook::Section.new(index: "aaaa")
+    book << PDFBook::Section.new(extra: "Extra page")
     book.to_file '/tmp/book.pdf'
 
     # book.pages.should == 12

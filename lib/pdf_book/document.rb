@@ -34,6 +34,7 @@ class PDFBook::Document
     @sections = []
     @toc = {}
     @index = {}
+    @extras = {}
     @page_number = []
 
     # Watermark
@@ -190,7 +191,7 @@ class PDFBook::Document
   
     # Build a Hash of topic and associed subtopics ordered by page numbers
     ordered = {} 
-    @toc.each{ |label, page| ordered["#{label}"] = {page: page, subtopics: {}}}
+    @toc.each{ |label, page| ordered["#{label}"] = {page: page, subtopics: {}, extras: {}}}
     last_ordered_topic_key = ordered.keys.last
     @index.each do |label, page|
       last_topic = {label: ordered.first[0], page: ordered.first[1][:page]}
@@ -199,6 +200,17 @@ class PDFBook::Document
           ordered["#{last_topic[:label]}"][:subtopics]["#{label}"] = {page: page}
         elsif page > last_topic[:page] && topic_label == last_ordered_topic_key
           ordered["#{last_ordered_topic_key}"][:subtopics]["#{label}"] = {page: page}
+        end
+        last_topic = {label: topic_label, page: topic_attributes[:page]}
+      end
+    end
+    @extras.each do |label, page|
+      last_topic = {label: ordered.first[0], page: ordered.first[1][:page]}
+      ordered.each do |topic_label, topic_attributes|
+        if page > last_topic[:page] && page < topic_attributes[:page]
+          ordered["#{last_topic[:label]}"][:extras]["#{label}"] = {page: page}
+        elsif page > last_topic[:page] && topic_label == last_ordered_topic_key
+          ordered["#{last_ordered_topic_key}"][:extras]["#{label}"] = {page: page}
         end
         last_topic = {label: topic_label, page: topic_attributes[:page]}
       end
@@ -249,6 +261,29 @@ class PDFBook::Document
         @index_template.add_custom(
           text: [ 
             "#{subtopic_label},  #{subtopic_parameters[:page]}", 
+          size: subtopic_size
+          ]
+        )
+      end
+
+      @index_template.add_custom move_down: 8
+
+      # Order extras by name amd display them
+      parameters[:extras].sort_by{|extra_label, extra_parameters| extra_label}.each do |extra_label, extra_parameters|
+        
+        # Index page is insered at the end and can modify registered page numbers
+        extra_parameters[:page] = (@index_page < extra_parameters[:page]) ? extra_parameters[:page] + 1 : extra_parameters[:page]
+
+        # Toc page is insered at the end and can modify registered page numbers
+        extra_parameters[:page] = (@toc_page < extra_parameters[:page]) ? extra_parameters[:page] + 1 : extra_parameters[:page]
+
+        # 'Start at' modificateur
+        extra_parameters[:page] = extra_parameters[:page] - @index_start_at + 1
+
+        # Display extra
+        @index_template.add_custom(
+          text: [ 
+            "#{extra_label},  #{extra_parameters[:page]}", 
           size: subtopic_size
           ]
         )
@@ -319,6 +354,10 @@ class PDFBook::Document
 
     if section.index
       @index[section.index] = @pdf.page_count
+    end
+
+    if section.extra
+      @extras[section.extra] = @pdf.page_count
     end
 
     if section.background

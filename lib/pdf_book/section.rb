@@ -2,7 +2,7 @@ require 'pdf_book/content'
 
 class PDFBook::Section
 
-  attr_accessor :title, :background, :background_size, :contents, :margin_options, :index, :page_number, :toc
+  attr_accessor :title, :background, :background_size, :contents, :margin_options, :index, :page_number, :toc, :extra
 
   def initialize(options={})
     @title ||= options[:title]
@@ -11,6 +11,7 @@ class PDFBook::Section
     @contents = []
     @toc = (options[:toc])
     @index = (options[:index])
+    @extra = (options[:extra])
     @page_number = options[:page_number] || false
 
     # Overrride page options
