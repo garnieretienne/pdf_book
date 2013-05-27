@@ -3,7 +3,7 @@ require 'open-uri'
 
 class PDFBook::Document
 
-  attr_accessor :sections, :index, :extras, :toc, :toc_page
+  attr_accessor :sections, :index, :extras, :toc
   attr_reader :page_width, :page_height, :margin_options, :pdf, :last_position, :index_pages
 
   def initialize(options={})
@@ -112,8 +112,8 @@ class PDFBook::Document
       end
     end
 
-    render_index if @index_page
     render_table_of_content if @toc_page
+    render_index if @index_page
 
     #@index?
     @pdf.number_pages "<page>",
@@ -186,8 +186,13 @@ class PDFBook::Document
   end
 
   def render_index
-    return false if !@toc_page
-    table_of_content_options if !@index_template
+
+    # Increment page number if the ToC page will be insered before the index page
+    @index_page += 1 if !@toc_page.nil? && @toc_page < @index_page
+
+    # If no ToC page has been set (= the book will not have a ToC), set it to 0 to not modify page number after
+    @toc_page = 0 if !@toc_page
+    index_options if !@index_template
   
     # Build a Hash of topic and associed subtopics ordered by page numbers
     ordered = {} 
@@ -289,7 +294,7 @@ class PDFBook::Document
         )
       end
     end
-
+ 
     @pdf.go_to_page @index_page if @index_page > 0
 
     # Render and record the number of index pages

@@ -679,7 +679,6 @@ describe PDFBook do
       "Chapter 2" => 20,
       "Chapter 3" => 30
     }
-    book.toc_page = 1
 
     book.index = {
       "Story 1" => 11,
