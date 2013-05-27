@@ -659,5 +659,66 @@ describe PDFBook do
     book.pages.should == 2
     book.last_position.to_i.should == 406
   end
+
+  it "should generate an index with manual entries" do
+    book_size = [152.4.mm, 228.6.mm]
+
+    margin_bottom = 20.mm
+    book = PDFBook::Document.new(
+      font: 'Times-Roman',
+      page_size: book_size,
+      page_margin_left: 19.05.mm,
+      page_margin_right: 19.05.mm,
+      page_margin_top: 15.mm,
+      page_margin_bottom: margin_bottom,
+      watermark: "P R E V I E W"
+    )
+
+    book.toc = {
+      "Chapter 1" => 10,
+      "Chapter 2" => 20,
+      "Chapter 3" => 30
+    }
+    book.toc_page = 1
+
+    book.index = {
+      "Story 1" => 11,
+      "Story 2" => 12,
+      "Story 3" => 13,
+      "Story 4" => 21,
+      "Story 5" => 22,
+      "Story 6" => 23,
+      "Story 7" => 31,
+      "Story 8" => 32,
+      "Story 9" => 33,
+      "Story 10" => 34,
+      "Story 11" => 35,
+      "Story 12" => 36
+    }
+
+    book.extras = {
+      "Note 1" => 18,
+      "Note 2" => 28,
+      "Note 3" => 29
+    }
+
+    index_template = PDFBook::Section.new
+
+    index_template.add_text "Index",
+      font_style: :italic,
+      font_size: 20,
+      line_height: 4.65.mm,
+      gap: 4.65.mm
+
+
+    book.index(
+      template: index_template,
+      start_at: 3,
+      position: get_prawn_y(60+8.mm, book_size[1], margin_bottom)
+    )
+ 
+    book << :index
+    book.to_file "/tmp/index.pdf"
+  end
 end
 

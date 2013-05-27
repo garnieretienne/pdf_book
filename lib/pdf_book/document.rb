@@ -3,7 +3,7 @@ require 'open-uri'
 
 class PDFBook::Document
 
-  attr_accessor :sections
+  attr_accessor :sections, :index, :extras, :toc, :toc_page
   attr_reader :page_width, :page_height, :margin_options, :pdf, :last_position, :index_pages
 
   def initialize(options={})
