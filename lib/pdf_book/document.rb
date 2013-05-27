@@ -115,7 +115,18 @@ class PDFBook::Document
     render_table_of_content if @toc_page
     render_index if @index_page
 
-    #@index?
+    # Ajust the page numbers with @toc_page and @index_page
+    @page_number = @page_number.map do |page_number|
+      if @toc_page && @toc_template
+        page_number += 1 if page_number > @toc_page
+      end
+      if @index_page
+        page_number += 1 if page_number > @index_page 
+      end
+      page_number
+    end
+    
+    # Print the page numbers
     @pdf.number_pages "<page>",
       at: [0, -20],
       align: :center,
@@ -166,6 +177,7 @@ class PDFBook::Document
     backup[:pdf]            = @pdf
     backup[:index_template] = @index_template
     backup[:toc_template]   = @toc_template
+    backup[:page_number]   = @page_number
     
     # Recreate a new temporary PDF to work with
     build_document
@@ -177,6 +189,7 @@ class PDFBook::Document
     @pdf            = backup[:pdf]
     @index_template = backup[:index_template]
     @toc_template   = backup[:toc_template]
+    @page_number    = backup[:page_number]
   end
 
   def init_new_page(new_margin_options={})
@@ -352,6 +365,7 @@ class PDFBook::Document
 
   def render_section(section)
     init_new_page(section.margin_options)
+    section_first_page = @pdf.page_count
 
     if section.toc
       @toc[section.toc] = @pdf.page_count
@@ -442,16 +456,7 @@ class PDFBook::Document
       record_last_position
     end
 
-    if section.page_number
-      page_number = @pdf.page_number
-      if @toc_page
-        page_number += 1 if @pdf.page_number > @toc_page 
-      end
-      if @index_page
-        page_number += 1 if @pdf.page_number > @index_page 
-      end
-      @page_number << page_number
-    end
+    @page_number += (section_first_page..@pdf.page_number).to_a if section.page_number
   end
 
   # Record the last know cursor position in the last page with content
