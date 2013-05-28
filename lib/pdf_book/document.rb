@@ -116,16 +116,30 @@ class PDFBook::Document
     render_index if @index_page
 
     # Ajust the page numbers with @toc_page and @index_page
+    @special_page_numbers = []
+    if !@index_page.nil? && @page_number.include?(@index_page+1)
+      @special_page_numbers << @index_page+1
+      @page_number.delete(@index_page+1)
+    end
+    if !@toc_page.nil? && @page_number.include?(@toc_page+1)
+      @special_page_numbers << @toc_page+1
+      @page_number.delete(@toc_page+1)
+    end
     @page_number = @page_number.map do |page_number|
-      if @toc_page && @toc_template
+
+      # Modify the page value if a toc page will be insered
+      if @toc_page && @toc_template && page_number != @toc_page+1
         page_number += 1 if page_number > @toc_page
       end
-      if @index_page
-        page_number += 1 if page_number > @index_page 
+
+      # Modify the page value if an index page will be insered
+      if @index_page && page_number != @index_page+1
+        page_number += 1 if page_number > @index_page
       end
       page_number
     end
-    
+    @page_number += @special_page_numbers
+
     # Print the page numbers
     @pdf.number_pages "<page>",
       at: [0, -20],
@@ -331,7 +345,6 @@ class PDFBook::Document
 
       # 'Start at' parameter
       page = page - @toc_start_at + 1
-
       label_cell = @pdf.make_cell(content: label.to_s)
       page_cell = @pdf.make_cell(content: page.to_s)
       page_cell.align = :right
@@ -365,7 +378,7 @@ class PDFBook::Document
 
   def render_section(section)
     init_new_page(section.margin_options)
-    section_first_page = @pdf.page_count
+    section_first_page = @pdf.page_number
 
     if section.toc
       @toc[section.toc] = @pdf.page_count
@@ -455,7 +468,6 @@ class PDFBook::Document
 
       record_last_position
     end
-
     @page_number += (section_first_page..@pdf.page_number).to_a if section.page_number
   end
 
