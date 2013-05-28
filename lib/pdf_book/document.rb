@@ -395,12 +395,12 @@ class PDFBook::Document
     if section.background
       case section.background_size
       when :fullpage
-        @pdf.image section.background,
+        @pdf.image open(section.background),
           at: [-@pdf.bounds.absolute_left, @page_height - @pdf.bounds.absolute_bottom],
           width: @page_width,
           height: @page_height
       when :margin
-        @pdf.image section.background,
+        @pdf.image open(section.background),
           width: @pdf.bounds.width,
           height: @pdf.bounds.height
         @pdf.move_cursor_to @pdf.bounds.height
