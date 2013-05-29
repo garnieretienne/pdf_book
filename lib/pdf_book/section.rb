@@ -2,7 +2,8 @@ require 'pdf_book/content'
 
 class PDFBook::Section
 
-  attr_accessor :title, :background, :background_size, :contents, :margin_options, :index, :page_number, :toc, :extra
+  attr_accessor :title, :background, :background_size, :contents, :margin_options, :index, 
+    :page_number, :toc, :extra, :must_be_right, :must_be_left
 
   def initialize(options={})
     @title ||= options[:title]
@@ -14,6 +15,10 @@ class PDFBook::Section
     @extra = (options[:extra])
     @page_number = options[:page_number] || false
 
+    # Page must be on right or left side
+    @must_be_right ||= options[:must_be_right]
+    @must_be_left ||= options[:must_be_left]
+
     # Overrride page options
     @margin_options = {}
     @margin_options[:top_margin] = options[:page_margin_top] if options[:page_margin_top]
@@ -24,11 +29,6 @@ class PDFBook::Section
 
   def add_custom(*args)
     @contents << PDFBook::Content::Custom.new(*args)
-    return self
-  end
-
-  def add_chapter(*args)
-    @contents << PDFBook::Content::Chapter.new(*args)
     return self
   end
 

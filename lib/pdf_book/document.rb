@@ -4,10 +4,9 @@ require 'open-uri'
 class PDFBook::Document
 
   attr_accessor :sections, :index, :extras, :toc
-  attr_reader :page_width, :page_height, :margin_options, :pdf, :last_position, :index_pages
+  attr_reader :page_width, :page_height, :margin_options, :pdf, :last_position 
 
   def initialize(options={})
-    @note_page ||= options[:note_page]
 
     # Page size
     @page_size = options[:page_size] || 'LETTER'
@@ -49,10 +48,12 @@ class PDFBook::Document
     update_font_families
   end
 
+  # Add PDFBook::Section or special sym (:index, :table_of_content)
   def <<(section)
     self.sections << section
   end
 
+  # Configure the Table of Content
   def table_of_content_options(options={})
     @toc_template = options[:template] || PDFBook::Section.new
     @toc_position = options[:position] || @pdf.bounds.top
@@ -60,6 +61,7 @@ class PDFBook::Document
     @toc_start_at = options[:start_at] || 1
   end
 
+  # Configure the Index
   def index_options(options={})
     @index_template = options[:template] || PDFBook::Section.new
     @index_position = options[:position] || @pdf.bounds.top
@@ -67,6 +69,7 @@ class PDFBook::Document
     @index_start_at = options[:start_at] || 1
   end
 
+  # Render the document in a sandbox and return the page number
   def pages
     page_count = 0
 
@@ -83,23 +86,33 @@ class PDFBook::Document
     return page_count
   end
 
+  # Export the document to PDF (Stream)
   def to_pdf
     render
     @pdf.render
   end
 
+  # Export the document to PDF (File)
   def to_file(path)
     render
     @pdf.render_file path
   end
 
+  # Render the document
   def render
 
+    # Render each sections
     sections.each do |section|
       case section
       when :table_of_content
+        # Create an empty page, content will be insered later
+        table_of_content_options if !@toc_template
+        init_new_page(@toc_template.margin_options)
         @toc_page = @pdf.page_count
       when :index
+        # Create an empty page, content will be insered later
+        index_options if !@index_template
+        init_new_page(@index_template.margin_options)
         @index_page = @pdf.page_count
       else
         raise TypeError, "#{section.class} is not PDFBook::Section" if section.class != PDFBook::Section
@@ -107,25 +120,11 @@ class PDFBook::Document
       end
     end
 
+    # Render the Table of Content
+    render_table_of_content
 
-    if @toc_page
-
-      # Toc page will be insered after toc_page, will be toc_page+1 so 
-      # we must increment every page number > toc_page before rendering the toc section.
-      @page_number.map!{|page_number| (page_number > @toc_page) ? page_number += 1 : page_number}
-      @index_page += 1 if !@index_page.nil? && @toc_page < @index_page
-
-      render_table_of_content
-    end
-
-    if @index_page
-
-      # Index page will be insered after index_page, will be index_page+1 so 
-      # we must increment every page number > index_page before rendering the toc section.
-      @page_number.map!{|page_number| (page_number > @index_page) ? page_number += 1 : page_number}
-
-      render_index
-    end
+    # Render the Index
+    render_index
 
     # Print the page numbers
     @pdf.number_pages "<page>",
@@ -166,6 +165,7 @@ class PDFBook::Document
     end
   end
 
+  # Update Prawn font families
   def update_font_families
     @pdf.font_families.update @font_families if @font_families
   end
@@ -193,20 +193,15 @@ class PDFBook::Document
     @page_number    = backup[:page_number]
   end
 
+  # Add a new page to the PDF document
   def init_new_page(new_margin_options={})
     @pdf.start_new_page @margin_options.merge(new_margin_options)
     @pdf.font(@font)
     @pdf.stamp "watermark" if @watermark
   end
 
+  # Render the index
   def render_index
-
-    # Increment page number if the ToC page will be insered before the index page
-    # @index_page += 1 if !@toc_page.nil? && @toc_page < @index_page
-
-    # If no ToC page has been set (= the book will not have a ToC), set it to 0 to not modify page number after
-    @toc_page = 0 if !@toc_page
-    index_options if !@index_template
   
     # Build a Hash of topic and associed subtopics ordered by page numbers
     ordered = {} 
@@ -241,12 +236,6 @@ class PDFBook::Document
     @index_template.add_custom move_cursor_to: @index_position
     ordered.sort_by{|label, attributes| label}.each do |label, parameters|
 
-      # Index page is insered at the end and can modify registered page numbers
-      parameters[:page] = (@index_page < parameters[:page]) ? parameters[:page] + 1 : parameters[:page]
-
-      # Toc page is insered at the end and can modify registered page numbers
-      parameters[:page] = (@toc_page < parameters[:page]) ? parameters[:page] + 1 : parameters[:page]
-
       # 'Start at' modificateur
       parameters[:page] = parameters[:page] - @index_start_at + 1
 
@@ -266,12 +255,6 @@ class PDFBook::Document
 
       # Order subtopics by name and display them
       parameters[:subtopics].sort_by{|subtopic_label, subtopic_parameters| subtopic_label}.each do |subtopic_label, subtopic_parameters|
-        
-        # Index page is insered at the end and can modify registered page numbers
-        subtopic_parameters[:page] = (@index_page < subtopic_parameters[:page]) ? subtopic_parameters[:page] + 1 : subtopic_parameters[:page]
-
-        # Toc page is insered at the end and can modify registered page numbers
-        subtopic_parameters[:page] = (@toc_page < subtopic_parameters[:page]) ? subtopic_parameters[:page] + 1 : subtopic_parameters[:page]
 
         # 'Start at' modificateur
         subtopic_parameters[:page] = subtopic_parameters[:page] - @index_start_at + 1
@@ -289,12 +272,6 @@ class PDFBook::Document
 
       # Order extras by name amd display them
       parameters[:extras].sort_by{|extra_label, extra_parameters| extra_label}.each do |extra_label, extra_parameters|
-        
-        # Index page is insered at the end and can modify registered page numbers
-        extra_parameters[:page] = (@index_page < extra_parameters[:page]) ? extra_parameters[:page] + 1 : extra_parameters[:page]
-
-        # Toc page is insered at the end and can modify registered page numbers
-        extra_parameters[:page] = (@toc_page < extra_parameters[:page]) ? extra_parameters[:page] + 1 : extra_parameters[:page]
 
         # 'Start at' modificateur
         extra_parameters[:page] = extra_parameters[:page] - @index_start_at + 1
@@ -312,31 +289,23 @@ class PDFBook::Document
     @pdf.go_to_page @index_page if @index_page > 0
 
     # Render and record the number of index pages
-    page_number_before = @pdf.page_count
-    render_section @index_template
-    @index_pages = @pdf.page_count - page_number_before
+    render_section @index_template, false
   end
 
+  # Render the Table of Content
   def render_table_of_content
-    table_of_content_options if !@toc_template
     cells = []
     @toc.sort_by{|label, page| page}.each do |label, page|
 
-      # The 'Index' page is insered at the end
-      if @index_page
-        page = (@index_page < page) ? page + 1 : page
-      end
-
-      # The 'Table of Content' page is insered at the end
-      page = (@toc_page < page) ? page + 1 : page
-
       # 'Start at' parameter
       page = page - @toc_start_at + 1
+
       label_cell = @pdf.make_cell(content: label.to_s)
       page_cell = @pdf.make_cell(content: page.to_s)
       page_cell.align = :right
       cells << [label_cell, page_cell]
     end
+
     if !cells.empty?
       @toc_template.add_custom(
         move_cursor_to: @toc_position,
@@ -349,36 +318,40 @@ class PDFBook::Document
       )
     end
     @pdf.go_to_page @toc_page if @toc_page > 0
-    render_section @toc_template
+    render_section @toc_template, false
   end
 
-  def render_note_page
-    @pdf.move_down 40
-    @pdf.text 'Notes', size: 20, align: :center
-    @pdf.move_down 60
-    7.times do
-      @pdf.stroke_horizontal_rule
-      @pdf.move_down 60
+  # Render a section
+  def render_section(section, new_page=true)
+    if section.must_be_right
+
+      # Section first page must always be right
+      render_section section.must_be_right if @pdf.page_count % 2 == 1
+    elsif section.must_be_left
+
+      # Section first page must always be left
+      render_section section.must_be_left if @pdf.page_count % 2 == 0
     end
-    @pdf.move_down 20
-  end
 
-  def render_section(section)
-    init_new_page(section.margin_options)
+    init_new_page(section.margin_options) if new_page == true
     section_first_page = @pdf.page_number
 
+    # Register the section in the ToC
     if section.toc
       @toc[section.toc] = @pdf.page_count
     end
 
+    # Register the section in the Index
     if section.index
       @index[section.index] = @pdf.page_count
     end
 
+    # Register the section in the Index as Extra
     if section.extra
       @extras[section.extra] = @pdf.page_count
     end
 
+    # Insert the section background if exist
     if section.background
       case section.background_size
       when :fullpage
@@ -393,12 +366,8 @@ class PDFBook::Document
         @pdf.move_cursor_to @pdf.bounds.height
       end
     end
-    
-    if section.title
-      @pdf.text section.title, size: 20, align: :center
-      @pdf.move_down 40
-    end
 
+    # Insert the section content
     section.contents.each do |content|
       case content
 
@@ -408,11 +377,6 @@ class PDFBook::Document
             (args) ? @pdf.send(command, *args) : @pdf.send(command)
           end
         end
-
-      when PDFBook::Content::Chapter
-        @pdf.move_down 40
-        @pdf.text content.data, size: 30, align: :center
-        @pdf.move_down 60
 
       when PDFBook::Content::Text
         @pdf.font content.font || @font do

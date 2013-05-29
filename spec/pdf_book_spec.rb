@@ -365,7 +365,8 @@ describe PDFBook do
       page_margin_left: 13.mm,
       page_margin_right: 13.mm,
       page_margin_top: 13.mm,
-      page_margin_bottom: cover_margin_bottom
+      page_margin_bottom: cover_margin_bottom,
+      must_be_left: PDFBook::Section.new(page_number: true)
     )
 
     taglines = ["This is the best", "cookbook in the world"]
@@ -479,7 +480,8 @@ describe PDFBook do
       page_margin_right: 13.mm,
       page_margin_top: 13.mm,
       page_margin_bottom: cover_margin_bottom,
-      toc: "Student"
+      toc: "Student",
+      must_be_right: PDFBook::Section.new(page_number: true)
     )
 
     pasta_section.add_text "Pasta",
@@ -574,7 +576,7 @@ describe PDFBook do
     book << introduction
     book << note_page
     book << :table_of_content
-    book << blank_page if book.pages % 2 == 1 # Sections page must always be right
+    # book << blank_page if book.pages % 2 == 1 # Sections page must always be right
     book << pasta_section
     book << chocolate_taste_recipe_story
     book << chocolate_taste_recipe
@@ -588,161 +590,161 @@ describe PDFBook do
     # book.pages.should == 12
   end
 
-  it "should be able to access the last Y position in the last page with content" do
-    book_size = [152.4.mm, 228.6.mm]
+  # it "should be able to access the last Y position in the last page with content" do
+  #   book_size = [152.4.mm, 228.6.mm]
 
-    margin_bottom = 20.mm
-    book = PDFBook::Document.new(
-      font: 'Times-Roman',
-      page_size: book_size,
-      page_margin_left: 19.05.mm,
-      page_margin_right: 19.05.mm,
-      page_margin_top: 15.mm,
-      page_margin_bottom: margin_bottom,
-      watermark: "P R E V I E W"
-    )
+  #   margin_bottom = 20.mm
+  #   book = PDFBook::Document.new(
+  #     font: 'Times-Roman',
+  #     page_size: book_size,
+  #     page_margin_left: 19.05.mm,
+  #     page_margin_right: 19.05.mm,
+  #     page_margin_top: 15.mm,
+  #     page_margin_bottom: margin_bottom,
+  #     watermark: "P R E V I E W"
+  #   )
 
-    ### Build Chocolate taste recipe
-    ### ----------------------------
+  #   ### Build Chocolate taste recipe
+  #   ### ----------------------------
 
-    chocolate_taste_recipe_story = PDFBook::Section.new page_number: true
+  #   chocolate_taste_recipe_story = PDFBook::Section.new page_number: true
 
-    chocolate_taste_recipe_story.add_image @large_image_path,
-      max_width: book.page_width - ( book.margin_options[:left_margin] + book.margin_options[:right_margin] ) + 6.35.mm*2,
-      max_height: (book.page_height - ( book.margin_options[:top_margin] + book.margin_options[:bottom_margin] ) - 4.65.mm) / 2 + 10.mm,
-      gap: 4.65.mm*2
+  #   chocolate_taste_recipe_story.add_image @large_image_path,
+  #     max_width: book.page_width - ( book.margin_options[:left_margin] + book.margin_options[:right_margin] ) + 6.35.mm*2,
+  #     max_height: (book.page_height - ( book.margin_options[:top_margin] + book.margin_options[:bottom_margin] ) - 4.65.mm) / 2 + 10.mm,
+  #     gap: 4.65.mm*2
 
-    chocolate_taste_recipe_story.add_text "This is my favorite !\n I known you will like it !",
-      font_size: 11
+  #   chocolate_taste_recipe_story.add_text "This is my favorite !\n I known you will like it !",
+  #     font_size: 11
 
-    chocolate_taste_recipe = PDFBook::Section.new(
-      page_number: true,
-      index: "Chocolate Taste"
-    )
+  #   chocolate_taste_recipe = PDFBook::Section.new(
+  #     page_number: true,
+  #     index: "Chocolate Taste"
+  #   )
 
-    chocolate_taste_recipe.add_text "Chocolate taste",
-      font_size: 17,
-      font_style: :bold,
-      line_height: 4.65.mm/2
+  #   chocolate_taste_recipe.add_text "Chocolate taste",
+  #     font_size: 17,
+  #     font_style: :bold,
+  #     line_height: 4.65.mm/2
 
-    chocolate_taste_recipe.add_text "Contributed By: kurt!",
-      font_size: 11,
-      line_height: 4.65.mm
+  #   chocolate_taste_recipe.add_text "Contributed By: kurt!",
+  #     font_size: 11,
+  #     line_height: 4.65.mm
 
-    left_column_ingredients = [
-      "Pasta",
-      "Chocolate"
-    ]
+  #   left_column_ingredients = [
+  #     "Pasta",
+  #     "Chocolate"
+  #   ]
 
-    right_column_ingredients = [
-      "Salt",
-      "Peeper",
-      "Sugar"
-    ]
+  #   right_column_ingredients = [
+  #     "Salt",
+  #     "Peeper",
+  #     "Sugar"
+  #   ]
 
-    column_options = {
-      font_size: 11,
-      line_height: 2,
-      gap: 4.65.mm
-    }
-    chocolate_taste_recipe.add_column_text column_options, 
-      left_column_ingredients.join("\n"), 
-      right_column_ingredients.join("\n")
+  #   column_options = {
+  #     font_size: 11,
+  #     line_height: 2,
+  #     gap: 4.65.mm
+  #   }
+  #   chocolate_taste_recipe.add_column_text column_options, 
+  #     left_column_ingredients.join("\n"), 
+  #     right_column_ingredients.join("\n")
 
-    chocolate_taste_recipe.add_text "1/ Put evrything in a cup\n 2/ Burn it!\n 3/ It's ready !",
-      font_size: 11
+  #   chocolate_taste_recipe.add_text "1/ Put evrything in a cup\n 2/ Burn it!\n 3/ It's ready !",
+  #     font_size: 11
 
-    book << chocolate_taste_recipe_story
-    book << chocolate_taste_recipe
-    book.to_file '/tmp/recipe.pdf'
+  #   book << chocolate_taste_recipe_story
+  #   book << chocolate_taste_recipe
+  #   book.to_file '/tmp/recipe.pdf'
 
-    book.pages.should == 2
-    book.last_position.to_i.should == 406
-  end
+  #   book.pages.should == 2
+  #   book.last_position.to_i.should == 406
+  # end
 
-  it "should generate an index with manual entries" do
-    book_size = [152.4.mm, 228.6.mm]
+  # it "should generate an index with manual entries" do
+  #   book_size = [152.4.mm, 228.6.mm]
 
-    margin_bottom = 20.mm
-    book = PDFBook::Document.new(
-      font: 'Times-Roman',
-      page_size: book_size,
-      page_margin_left: 19.05.mm,
-      page_margin_right: 19.05.mm,
-      page_margin_top: 15.mm,
-      page_margin_bottom: margin_bottom,
-      watermark: "P R E V I E W"
-    )
+  #   margin_bottom = 20.mm
+  #   book = PDFBook::Document.new(
+  #     font: 'Times-Roman',
+  #     page_size: book_size,
+  #     page_margin_left: 19.05.mm,
+  #     page_margin_right: 19.05.mm,
+  #     page_margin_top: 15.mm,
+  #     page_margin_bottom: margin_bottom,
+  #     watermark: "P R E V I E W"
+  #   )
 
-    book.toc = {
-      "Chapter 1" => 10,
-      "Chapter 2" => 20,
-      "Chapter 3" => 30
-    }
+  #   book.toc = {
+  #     "Chapter 1" => 10,
+  #     "Chapter 2" => 20,
+  #     "Chapter 3" => 30
+  #   }
 
-    book.index = {
-      "Story 1" => 11,
-      "Story 2" => 12,
-      "Story 3" => 13,
-      "Story 4" => 21,
-      "Story 5" => 22,
-      "Story 6" => 23,
-      "Story 7" => 31,
-      "Story 8" => 32,
-      "Story 9" => 33,
-      "Story 10" => 34,
-      "Story 11" => 35,
-      "Story 12" => 36
-    }
+  #   book.index = {
+  #     "Story 1" => 11,
+  #     "Story 2" => 12,
+  #     "Story 3" => 13,
+  #     "Story 4" => 21,
+  #     "Story 5" => 22,
+  #     "Story 6" => 23,
+  #     "Story 7" => 31,
+  #     "Story 8" => 32,
+  #     "Story 9" => 33,
+  #     "Story 10" => 34,
+  #     "Story 11" => 35,
+  #     "Story 12" => 36
+  #   }
 
-    book.extras = {
-      "Note 1" => 18,
-      "Note 2" => 28,
-      "Note 3" => 29
-    }
+  #   book.extras = {
+  #     "Note 1" => 18,
+  #     "Note 2" => 28,
+  #     "Note 3" => 29
+  #   }
 
-    index_template = PDFBook::Section.new page_number: true
+  #   index_template = PDFBook::Section.new page_number: true
 
-    index_template.add_text "Index",
-      font_style: :italic,
-      font_size: 20,
-      line_height: 4.65.mm,
-      gap: 4.65.mm
+  #   index_template.add_text "Index",
+  #     font_style: :italic,
+  #     font_size: 20,
+  #     line_height: 4.65.mm,
+  #     gap: 4.65.mm
 
 
-    book.index_options(
-      template: index_template,
-      start_at: 3,
-      position: get_prawn_y(60+8.mm, book_size[1], margin_bottom)
-    )
+  #   book.index_options(
+  #     template: index_template,
+  #     start_at: 3,
+  #     position: get_prawn_y(60+8.mm, book_size[1], margin_bottom)
+  #   )
  
-    book << :index
-    book.to_file "/tmp/index.pdf"
-  end
+  #   book << :index
+  #   book.to_file "/tmp/index.pdf"
+  # end
 
-  it "should generate a table of content with manual entries" do
-    book_size = [152.4.mm, 228.6.mm]
+  # it "should generate a table of content with manual entries" do
+  #   book_size = [152.4.mm, 228.6.mm]
 
-    margin_bottom = 20.mm
-    book = PDFBook::Document.new(
-      font: 'Times-Roman',
-      page_size: book_size,
-      page_margin_left: 19.05.mm,
-      page_margin_right: 19.05.mm,
-      page_margin_top: 15.mm,
-      page_margin_bottom: margin_bottom,
-      watermark: "P R E V I E W"
-    )
+  #   margin_bottom = 20.mm
+  #   book = PDFBook::Document.new(
+  #     font: 'Times-Roman',
+  #     page_size: book_size,
+  #     page_margin_left: 19.05.mm,
+  #     page_margin_right: 19.05.mm,
+  #     page_margin_top: 15.mm,
+  #     page_margin_bottom: margin_bottom,
+  #     watermark: "P R E V I E W"
+  #   )
 
-    book.toc = {
-      "Chapter 1" => 10,
-      "Chapter 2" => 20,
-      "Chapter 3" => 30
-    }
+  #   book.toc = {
+  #     "Chapter 1" => 10,
+  #     "Chapter 2" => 20,
+  #     "Chapter 3" => 30
+  #   }
 
-    book << PDFBook::Section.new
-    book << :table_of_content
-    book.to_file "/tmp/toc.pdf"
-  end
+  #   book << PDFBook::Section.new
+  #   book << :table_of_content
+  #   book.to_file "/tmp/toc.pdf"
+  # end
 end
 

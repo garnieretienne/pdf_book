@@ -3,15 +3,7 @@ require 'open-uri'
 
 module PDFBook::Content
 
-  class Chapter
-
-    attr_accessor :data
-
-    def initialize(title)
-      @data = title
-    end
-  end
-
+  # Custom Prawn content
   class Custom
     attr_accessor :data
 
@@ -20,13 +12,11 @@ module PDFBook::Content
     end
   end
   
+  # Text content
   class Text
 
     attr_accessor :data, :position, :align, :font_size, :font_style, :line_height, :color, :gap, :font
 
-    #  :bold, :italic, :underline, :strikethrough, :subscript, and :superscript
-    # Font::AFM::BUILT_INS: ["Courier", "Helvetica", "Times-Roman", "Symbol", "ZapfDingbats", "Courier-Bold", "Courier-Oblique", "Courier-BoldOblique", "Times-Bold", "Times-Italic", "Times-BoldItalic", "Helvetica-Bold", "Helvetica-Oblique", "Helvetica-BoldOblique"]
-    # Line height is space added to the font_size
     def initialize(text, options={})
       @data = text
       @position ||= options[:position]
@@ -40,6 +30,7 @@ module PDFBook::Content
     end
   end
 
+  # Text content in two column
   class ColumnText
 
     attr_accessor :data, :font_size, :line_height, :gap
@@ -55,15 +46,14 @@ module PDFBook::Content
     end
   end
 
+  # Image content
   class Image
 
     attr_accessor :data, :width, :height, :max_width, :max_height, :position, :gap, :mark_image_area
 
     # Require a png image (some 'png' block the script)
     def initialize(path, options={})
-      # raise "Image not found at '#{path}'" if !File.exist?(path)
       @type = FastImage.type(path)
-      # raise "Image must be a JPG (#{@type})" if ![:jpg, :jpeg].include? @type
       
       @data = path
       @width, @height = FastImage.size(path, raise_on_failure: true, timeout: 5)
