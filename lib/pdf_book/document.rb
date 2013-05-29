@@ -94,11 +94,6 @@ class PDFBook::Document
   end
 
   def render
-    
-    # if @note_page
-    #   render_note_page
-    #   @pdf.start_new_page
-    # end
 
     sections.each do |section|
       case section
@@ -112,33 +107,25 @@ class PDFBook::Document
       end
     end
 
-    render_table_of_content if @toc_page
-    render_index if @index_page
 
-    # Ajust the page numbers with @toc_page and @index_page
-    @special_page_numbers = []
-    if !@index_page.nil? && @page_number.include?(@index_page+1)
-      @special_page_numbers << @index_page+1
-      @page_number.delete(@index_page+1)
-    end
-    if !@toc_page.nil? && @page_number.include?(@toc_page+1)
-      @special_page_numbers << @toc_page+1
-      @page_number.delete(@toc_page+1)
-    end
-    @page_number = @page_number.map do |page_number|
+    if @toc_page
 
-      # Modify the page value if a toc page will be insered
-      if @toc_page && @toc_template && page_number != @toc_page+1
-        page_number += 1 if page_number > @toc_page
-      end
+      # Toc page will be insered after toc_page, will be toc_page+1 so 
+      # we must increment every page number > toc_page before rendering the toc section.
+      @page_number.map!{|page_number| (page_number > @toc_page) ? page_number += 1 : page_number}
+      @index_page += 1 if !@index_page.nil? && @toc_page < @index_page
 
-      # Modify the page value if an index page will be insered
-      if @index_page && page_number != @index_page+1
-        page_number += 1 if page_number > @index_page
-      end
-      page_number
+      render_table_of_content
     end
-    @page_number += @special_page_numbers
+
+    if @index_page
+
+      # Index page will be insered after index_page, will be index_page+1 so 
+      # we must increment every page number > index_page before rendering the toc section.
+      @page_number.map!{|page_number| (page_number > @index_page) ? page_number += 1 : page_number}
+
+      render_index
+    end
 
     # Print the page numbers
     @pdf.number_pages "<page>",
@@ -215,7 +202,7 @@ class PDFBook::Document
   def render_index
 
     # Increment page number if the ToC page will be insered before the index page
-    @index_page += 1 if !@toc_page.nil? && @toc_page < @index_page
+    # @index_page += 1 if !@toc_page.nil? && @toc_page < @index_page
 
     # If no ToC page has been set (= the book will not have a ToC), set it to 0 to not modify page number after
     @toc_page = 0 if !@toc_page
@@ -321,7 +308,7 @@ class PDFBook::Document
         )
       end
     end
- 
+
     @pdf.go_to_page @index_page if @index_page > 0
 
     # Render and record the number of index pages
